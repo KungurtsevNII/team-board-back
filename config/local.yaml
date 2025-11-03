@@ -1,0 +1,7 @@
+# Пример env файла
+
+env : "local" # dev, prod
+storage_path : "postgres://postgres:postgres@host:port/dbname?sslmode=disable"
+rest:
+  port: 8080
+  timeout: 5s
