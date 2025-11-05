@@ -78,5 +78,8 @@ func setupLogger(env string) *slog.Logger {
 			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}),
 		)
 	}
+
+	slog.SetDefault(log)
+
 	return log
 }

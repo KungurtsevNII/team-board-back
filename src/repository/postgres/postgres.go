@@ -5,9 +5,8 @@ import (
 	"fmt"
 )
 
-
 type Repository struct {
-	db *sql.DB
+	pool *pgxpool.Pool
 }
 
 func New(storagePath string) (*Repository, error) {

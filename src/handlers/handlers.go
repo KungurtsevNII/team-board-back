@@ -12,14 +12,14 @@ const (
 )
 
 type serverApi struct {
-	log    *slog.Logger
-	router *gin.RouterGroup
-	tba    TeamBoardAggregation
+	log            *slog.Logger
+	router         *gin.RouterGroup
+	tba            TeamBoardAggregation
+	createColumnUC CreateColumnUseCase
 	// ua     UserAggregation
 }
 
 type TeamBoardAggregation interface {
-    
 }
 
 /*
@@ -72,18 +72,18 @@ type SubsAggregation interface {
 */
 
 func RegisterHandlers(log *slog.Logger, router *gin.RouterGroup, tba TeamBoardAggregation) {
-	
+
 	s := &serverApi{
 		log:    log,
 		router: router,
 		tba:    tba,
 		// ua:     ua,
-		}
+	}
 	router.GET("/healthcheck", s.Healthcheck)
 
 	// Это будет регистрация сваггера
 	// router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-		
+
 	/*
 		path := router.Group(v1)
 
@@ -99,12 +99,12 @@ func RegisterHandlers(log *slog.Logger, router *gin.RouterGroup, tba TeamBoardAg
 	*/
 }
 
-func (s *serverApi) Healthcheck(c *gin.Context){
+func (s *serverApi) Healthcheck(c *gin.Context) {
 	// const op = "handlers.Healthcheck"
 	// log := s.log.With("op", op, "method", c.Request.Method)
 	// log.Info(c.Request.URL.Path)
 
 	c.JSON(http.StatusOK, gin.H{
-	    "status" : http.StatusOK,
+		"status": http.StatusOK,
 	})
 }
