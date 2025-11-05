@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,24 +14,27 @@ type (
 	// Контракт/Сваггер
 	CreateColumnRequest struct {
 		Title   string `json:"title"`
-		BoardID int64  `json:"board_id"`
+		BoardID string  `json:"board_id"`
 	}
 
 	CreateColumnResponse struct {
 		Title   string `json:"title"`
-		BoardID int64  `json:"board_id"`
+		BoardID string  `json:"board_id"`
 	}
 
 	// Один юз кейс, на один запрос, нра один пользвательский сценарий.
 	CreateColumnUseCase interface {
-		CreateColumn(cmd createcolumn.CreateColumnCommand) error
+		CreateColumnHandle(cmd createcolumn.CreateColumnCommand) error
 	}
 )
 
-func (s *serverApi) CreateColumn(c *gin.Context) {
-	// const op = "handlers.Healthcheck"
-	// log := s.log.With("op", op, "method", c.Request.Method)
-	// log.Info(c.Request.URL.Path)
+func (h *HttpHandler) CreateColumn(c *gin.Context) {
+	const op = "handlers.Healthcheck"
+
+	log := slog.Default()
+	log.With("op", op, "method", c.Request.Method)
+	log.Info(c.Request.URL.Path)
+
 
 	// todo получить параметры из тела
 	var req CreateColumnRequest
@@ -47,7 +51,7 @@ func (s *serverApi) CreateColumn(c *gin.Context) {
 		})
 	}
 
-	err = s.createColumnUC.Handle(cmd)
+	err = h.columnUC.CreateColumnHandle(cmd)
 	if err != nil {
 		switch {
 		case errors.Is(err, createcolumn.CreateColumnIsExistsErrr):

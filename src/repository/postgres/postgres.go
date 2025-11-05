@@ -1,36 +1,33 @@
 package postgres
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Repository struct {
 	pool *pgxpool.Pool
 }
 
+type RepositoryInf interface {
+    
+}
+
 func New(storagePath string) (*Repository, error) {
 	const op = "storage.postgresql.New"
 
-	db, err := sql.Open("postgres", storagePath)
+	pool, err := pgxpool.New(context.Background(), storagePath)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = db.Ping()
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return &Repository{db: db}, nil
+	return &Repository{
+		pool: pool,
+	}, nil
 }
 
-func (s *Repository) Close() error {
-	op := "storage.postgresql.Close"
-
-	err := s.db.Close()
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
-	}
-	return nil
+func (s *Repository) Close(){
+	s.pool.Close()
 }

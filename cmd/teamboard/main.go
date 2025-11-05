@@ -1,18 +1,11 @@
 package main
 
 import (
-	"context"
 	"log/slog"
 	"os"
-	"os/signal"
-	"syscall"
-
-	"github.com/KungurtsevNII/team-board-back/src/app"
 	"github.com/KungurtsevNII/team-board-back/src/config"
-	"github.com/KungurtsevNII/team-board-back/src/handlers"
+	"github.com/KungurtsevNII/team-board-back/src/repository/postgres"
 	"github.com/sytallax/prettylog"
-
-	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -28,35 +21,25 @@ func main() {
 
 	log.Info("starting application", slog.String("env", cfg.Env))
 
-	r := gin.Default()
-	routerGroup := r.Group(mainPath)
-	handlers.RegisterHandlers(
-		log,
-		routerGroup,
-		nil, //Тут будет интерфейса TeamBoardAggregation,
-		// который будет реализовывать repository (репозиторий будет разбивать большой
-		//  интерфейс на подинтерфейсы и так они будут друг друга инплементить)
-	)
+	rep, err := postgres.New(cfg.StoragePath)
+	if err != nil {
+		// log.Error("can't create repository", slog.Error(err))
+		panic(err)
+	}
 
-	//TODO: Добавить сваггер
-	// Будет тут будет запуск сваггера
-	// docs.SwaggerInfo.BasePath = mainPath
-	// routerGroup.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+	go func(){
+		err := initAndStartHTTPServer(cfg, rep)
+		if err != nil {
+		    panic(err)
+		}
+	}()
 
-	app := app.New(
-		log,
-		r,
-		cfg.REST.Port,
-		nil, //Тут будет инстанс базы данных
-	)
-
-	go app.MustRun()
-
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
-	<-stop
-	app.Stop(context.Background())
-	log.Info("stop gratefully")
+	//TODO: закончить шотдаун
+	// stop := make(chan os.Signal, 1)
+	// signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+	// <-stop
+	// app.Stop(context.Background())
+	// log.Info("stop gratefully")
 }
 
 func setupLogger(env string) *slog.Logger {

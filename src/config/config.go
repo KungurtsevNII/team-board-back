@@ -3,10 +3,9 @@ package config
 import (
 	"flag"
 	"os"
+	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
-
-	"github.com/KungurtsevNII/team-board-back/src/app"
 )
 
 const (
@@ -15,8 +14,13 @@ const (
 
 type Config struct {
 	Env         string         `yaml:"env" env-default:"local"`
-	StoragePass string         `yaml:"storage_path" env-required:"true"`
-	REST        app.HTTPConfig `yaml:"rest"`
+	StoragePath string         `yaml:"storage_path" env-required:"true"`
+	HttpConfig  HTTPConfig `yaml:"http_server"`
+}
+
+type HTTPConfig struct {
+	Port    int           `yaml:"port"`
+	Timeout time.Duration `yaml:"timeout"`
 }
 
 func MustLoad() *Config {

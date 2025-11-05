@@ -2,10 +2,10 @@ package createcolumn
 
 type CreateColumnCommand struct {
 	Title   string
-	BoardID int64
+	BoardID string
 }
 
-func NewCreateColumnCommand(title string, boardID int64) (CreateColumnCommand, error) {
+func NewCreateColumnCommand(title string, boardID string) (CreateColumnCommand, error) {
 	// todo validation
 
 	return CreateColumnCommand{
