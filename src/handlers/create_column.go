@@ -21,11 +21,6 @@ type (
 		Title   string `json:"title"`
 		BoardID string `json:"board_id"`
 	}
-
-	// Один юз кейс, на один запрос, нра один пользвательский сценарий.
-	CreateColumnUseCase interface {
-		CreateColumnHandle(cmd createcolumn.CreateColumnCommand) error
-	}
 )
 
 func (colUC *ColumnUseCase) CreateColumnHandle(cmd createcolumn.CreateColumnCommand) error {

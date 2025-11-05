@@ -8,7 +8,7 @@ import (
 )
 
 type UC struct {
-	repo repository.RepositoryInf
+	Repo repository.RepositoryInf
 }
 
 type Repo interface {
@@ -23,5 +23,5 @@ func (uc *UC) CreateColumnHandle(cmd CreateColumnCommand) error {
 	if err != nil {
 		return fmt.Errorf("%s: %v", op, err)
 	}
-	return uc.repo.CreateColumn(*column)
+	return uc.Repo.CreateColumn(*column)
 }

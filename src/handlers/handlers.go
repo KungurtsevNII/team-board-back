@@ -26,8 +26,15 @@ func NewHttpHandler(
 ) *HttpHandler {
 
 	return &HttpHandler{
-		cfg:      cfg,
-		columnUC: &ColumnUseCase{repo: repo},
+		cfg: cfg,
+
+		columnUC: &ColumnUseCase{
+			repo: repo,
+			createcolumn: &createcolumn.UC{
+				Repo: repo,
+			},
+		},
+
 		// taskUC:         taskUC,
 		// boardUC:        boardUC,
 	}
@@ -45,7 +52,7 @@ func NewHttpHandler(
 type ColumnUseCase struct {
 	repo repository.RepositoryInf
 
-	createcolumn createcolumn.UC
+	createcolumn *createcolumn.UC
 }
 
 type ColumnUseCaseInf interface {
