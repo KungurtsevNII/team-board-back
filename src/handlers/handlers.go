@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/KungurtsevNII/team-board-back/src/config"
+	"github.com/KungurtsevNII/team-board-back/src/repository"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/createcolumn"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,35 +15,41 @@ const (
 
 type HttpHandler struct {
 	cfg      *config.HTTPConfig
-	columnUC ColumnUseCase
+	columnUC ColumnUseCaseInf
 	// taskUC   TaskUseCase
 	// boardUC  BoardUseCase
 }
 
 func NewHttpHandler(
-	cfg *config.HTTPConfig, 
-	columnUC ColumnUseCase,
-	// taskUC   TaskUseCase,
-	// boardUC  BoardUseCase,
-	) *HttpHandler {
+	cfg *config.HTTPConfig,
+	repo repository.RepositoryInf, //будет прокидываться в драйверы tasks , boards , columns
+) *HttpHandler {
+
 	return &HttpHandler{
-		cfg:            cfg,
-		columnUC:       columnUC,
+		cfg:      cfg,
+		columnUC: &ColumnUseCase{repo: repo},
 		// taskUC:         taskUC,
 		// boardUC:        boardUC,
 	}
 }
 
 // type BoardUseCase interface {
-    
+
 // }
 
 // type TaskUseCase interface {
-    
+
 // }
 
-type ColumnUseCase interface {
-    CreateColumnUseCase
+// сюад добавляем каждый usecase , эта структура выступает как прослойка между интерфейсом бд и usecase`ами
+type ColumnUseCase struct {
+	repo repository.RepositoryInf
+
+	createcolumn createcolumn.UC
+}
+
+type ColumnUseCaseInf interface {
+	CreateColumnHandle(cmd createcolumn.CreateColumnCommand) error
 }
 
 func (s *HttpHandler) Healthcheck(c *gin.Context) {

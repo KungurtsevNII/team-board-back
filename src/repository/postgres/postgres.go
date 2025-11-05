@@ -7,15 +7,11 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Repository struct {
+type Postgres struct {
 	pool *pgxpool.Pool
 }
 
-type RepositoryInf interface {
-    
-}
-
-func New(storagePath string) (*Repository, error) {
+func New(storagePath string) (*Postgres, error) {
 	const op = "storage.postgresql.New"
 
 	pool, err := pgxpool.New(context.Background(), storagePath)
@@ -23,11 +19,11 @@ func New(storagePath string) (*Repository, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return &Repository{
+	return &Postgres{
 		pool: pool,
 	}, nil
 }
 
-func (s *Repository) Close(){
+func (s *Postgres) Close() {
 	s.pool.Close()
 }

@@ -19,7 +19,7 @@ type ColumnRecord struct {
 // func (r Repository) Check(){
 // }
 
-func (r Repository) CreateColumn(column domain.Column) error {
+func (r Postgres) CreateColumn(column domain.Column) error {
 	// column domain -> column record
 	// record раскаладывать в SQL
 	// SQL запрос отправить

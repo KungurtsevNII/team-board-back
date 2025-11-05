@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"github.com/KungurtsevNII/team-board-back/src/domain"
-	"github.com/KungurtsevNII/team-board-back/src/repository/postgres"
+	"github.com/KungurtsevNII/team-board-back/src/repository"
 )
 
 type UC struct {
-	repo postgres.Repository
+	repo repository.RepositoryInf
 }
 
 type Repo interface {
@@ -21,7 +21,7 @@ func (uc *UC) CreateColumnHandle(cmd CreateColumnCommand) error {
 	const op = "createcolumn.Handle"
 	column, err := domain.NewColumn(cmd.Title, cmd.BoardID)
 	if err != nil {
-	    return fmt.Errorf("%s: %v", op, err)
+		return fmt.Errorf("%s: %v", op, err)
 	}
 	return uc.repo.CreateColumn(*column)
 }

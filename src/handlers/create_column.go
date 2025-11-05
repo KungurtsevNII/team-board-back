@@ -14,12 +14,12 @@ type (
 	// Контракт/Сваггер
 	CreateColumnRequest struct {
 		Title   string `json:"title"`
-		BoardID string  `json:"board_id"`
+		BoardID string `json:"board_id"`
 	}
 
 	CreateColumnResponse struct {
 		Title   string `json:"title"`
-		BoardID string  `json:"board_id"`
+		BoardID string `json:"board_id"`
 	}
 
 	// Один юз кейс, на один запрос, нра один пользвательский сценарий.
@@ -28,13 +28,20 @@ type (
 	}
 )
 
+func (colUC *ColumnUseCase) CreateColumnHandle(cmd createcolumn.CreateColumnCommand) error {
+	err := colUC.createcolumn.CreateColumnHandle(cmd)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (h *HttpHandler) CreateColumn(c *gin.Context) {
 	const op = "handlers.Healthcheck"
 
 	log := slog.Default()
 	log.With("op", op, "method", c.Request.Method)
 	log.Info(c.Request.URL.Path)
-
 
 	// todo получить параметры из тела
 	var req CreateColumnRequest
@@ -43,14 +50,14 @@ func (h *HttpHandler) CreateColumn(c *gin.Context) {
 			"error": err.Error(),
 		})
 	}
-
+	//получить валидные чистые данные
 	cmd, err := createcolumn.NewCreateColumnCommand(req.Title, req.BoardID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 	}
-
+	//отправить их в БД
 	err = h.columnUC.CreateColumnHandle(cmd)
 	if err != nil {
 		switch {
@@ -65,7 +72,3 @@ func (h *HttpHandler) CreateColumn(c *gin.Context) {
 		"status": http.StatusOK,
 	})
 }
-
-// 1. Handler Request/Response
-// 2. Логика приложения. DTO -> use case (работа с базой, работа с кэшом, работа с очередями) -> DTO
-// 3.

@@ -16,22 +16,21 @@ import (
 )
 
 type HttpServer struct {
-    router *gin.Engine
-	srv *http.Server
-	rep *postgres.Repository
-	cfg *config.Config
+	router *gin.Engine
+	srv    *http.Server
+	rep    *postgres.Postgres
+	cfg    *config.Config
 }
-
 
 func initAndStartHTTPServer(
 	cfg *config.Config,
-	repo *postgres.Repository,
-	) error {
+	repo *postgres.Postgres,
+) error {
 	log := slog.Default()
 	const op = "initAndStartHttpServer"
 
 	// ch := make(chan error)
-	
+
 	router := gin.Default()
 	//Это нужно для того чтобы фронт мог достучаться, пока AllowOrigins: []string{"*"}, но потом это нужно поменять на хост фронта
 	//TODO: Поменять AllowOrigins: []string{"*"}, на хост фронта
@@ -43,13 +42,11 @@ func initAndStartHTTPServer(
 		AllowCredentials: true,                                                         // Разрешить отправку учетных данных (например, куки)
 		MaxAge:           12 * time.Hour,                                               // Время кэширования preflight-запросов
 	}))
-	
 
 	//TODO: Добавить сваггер
 	// Будет тут будет запуск сваггера
 	// docs.SwaggerInfo.BasePath = mainPath
 	// routerGroup.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.HttpConfig.Port),
@@ -57,21 +54,19 @@ func initAndStartHTTPServer(
 	}
 
 	s := &HttpServer{
-		cfg: cfg,
-		srv: srv,
+		cfg:    cfg,
+		srv:    srv,
 		router: router,
 	}
-	
-	//Handlers
 
-	//TODO: Добавить хендлеры
 	//TODO: Добавить рекавери
 	handlers := handlers.NewHttpHandler(&cfg.HttpConfig, repo)
 
-	
+	//TODO: ПРИМЕР!!! не финальная версия ручки
+	router.POST("/api/v1/column", handlers.CreateColumn)
+
 	log.Info("http server is running", slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
 		slog.String("swagger", fmt.Sprintf("http://localhost:%d/swagger/index.html", cfg.HttpConfig.Port)))
-
 
 	if err := s.router.Run(":" + strconv.Itoa(cfg.HttpConfig.Port)); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
