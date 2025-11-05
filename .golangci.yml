@@ -1,0 +1,76 @@
+# ========================
+# Общие настройки запуска
+# ========================
+version: "2"
+settings:
+  run:
+    # Проверяем весь проект (./...)
+    tests: false         # Линтим ли тестовые файлы
+    timeout: 3m          # Лимит времени на выполнение
+    skip-dirs:
+      - pkg              # Игнорируем публичные утилиты
+      - migrations       # Игнорируем SQL
+      - config           # Игнорируем YAML
+    allow-parallel-runners: true
+
+# ========================
+# Включенные линтеры
+# ========================
+  linters:
+    enable:
+      - govet           # Анализирует код на подозрительные конструкции
+      - errcheck        # Проверка необработанных ошибок
+      - staticcheck     # Статический анализ - находит баги, упрощает код
+      - gosimple        # Упрощение кода
+      - ineffassign     # Неиспользуемые присваивания
+      - unused          # Неиспользуемые переменные, импорты, функции
+      - typecheck       # Проверка типов
+      - gofmt           # Проверка форматирования
+      - goimports       # Проверка импортов
+      - dupl            # Поиск дублированного кода
+      - gocyclo         # Проверка сложности функций (if, switch, for, &&, ||)
+      - revive          # Анализ стиля кода
+      - unparam         # Неиспользуемые параметры
+      - prealloc        # Предварительное выделение слайсов, где это нужно
+
+# ========================
+# Настройки отдельных линтеров
+# ========================
+  linters-settings:
+    gocyclo:
+      min-complexity: 15   # Допустимая сложность функции
+    dupl:
+      threshold: 150       # Минимальное количество повторяющихся токенов
+    revive:
+      ignore-generated-header: true
+      severity: warning
+      rules:
+        - name: var-naming
+        - name: indent-error-flow
+        - name: empty-lines
+        - name: unused-parameter
+        - name: exported
+          severity: warning
+    goimports:
+      local-prefixes: github.com/KungurtsevNII/team-board-back
+
+# ========================
+# Вывод результатов
+# ========================
+  issues:
+    exclude-use-default: false
+    exclude-rules:
+      # Игнорировать длинные строки в тестах
+      - path: _test\.go
+        linters:
+          - lll
+    max-issues-per-linter: 0
+    max-same-issues: 0
+
+# ========================
+# Формат вывода
+# ========================
+  output:
+    format: colored-line-number
+    print-issued-lines: true
+    sort-results: true
