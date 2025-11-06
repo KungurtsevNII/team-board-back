@@ -3,16 +3,23 @@ package main
 import (
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/KungurtsevNII/team-board-back/src/config"
 	"github.com/KungurtsevNII/team-board-back/src/repository/postgres"
 	"github.com/sytallax/prettylog"
 )
 
 const (
-	mainPath = "/api"
 	envLocal = "local"
 	envDev   = "dev"
 	envProd  = "prod"
+
+)
+
+var(
+	httpError chan error
 )
 
 func main() {
@@ -27,19 +34,24 @@ func main() {
 		panic(err)
 	}
 
-	go func(){
-		err := initAndStartHTTPServer(cfg, rep)
-		if err != nil {
-		    panic(err)
-		}
-	}()
+	httpsrv, httpErrCh := initAndStartHTTPServer(cfg, rep)
+	if err != nil {
+		panic(err)
+	}
 
-	//TODO: закончить шотдаун
-	// stop := make(chan os.Signal, 1)
-	// signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
-	// <-stop
-	// app.Stop(context.Background())
-	// log.Info("stop gratefully")
+	stop := make(chan os.Signal, 1)
+    signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+
+    select {
+    case err := <-httpErrCh:
+        log.Error("http server failed", slog.Any("error", err))
+        os.Exit(1)
+    case sig := <-stop:
+        log.Info("received shutdown signal", slog.String("signal", sig.String()))
+		httpsrv.srv.Close()
+		httpsrv.rep.Close()
+        log.Info("shutdown complete")
+    }
 }
 
 func setupLogger(env string) *slog.Logger {

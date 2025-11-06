@@ -17,6 +17,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const(
+	mainPath = "/api"
+)
+
 type HttpServer struct {
     router *gin.Engine
 	srv *http.Server
@@ -28,11 +32,11 @@ type HttpServer struct {
 func initAndStartHTTPServer(
 	cfg *config.Config,
 	repo *postgres.Repository,
-	) error {
+	) (*HttpServer, <-chan error) {
 	log := slog.Default()
 	const op = "initAndStartHttpServer"
 
-	// ch := make(chan error)
+	httpErrCh := make(chan error)
 	
 	router := gin.Default()
 	//Это нужно для того чтобы фронт мог достучаться, пока AllowOrigins: []string{"*"}, но потом это нужно поменять на хост фронта
@@ -61,6 +65,7 @@ func initAndStartHTTPServer(
 	s := &HttpServer{
 		cfg: cfg,
 		srv: srv,
+		rep: repo,
 		router: router,
 	}
 	
@@ -77,20 +82,24 @@ func initAndStartHTTPServer(
 
 	mainGroup := router.Group(mainPath)
 
+	mainGroup.GET("/healthcheck", handlers.Healthcheck)
+
 	v1Group := mainGroup.Group("/v1")
 	{
-		v1Group.GET("/columns", handlers.CreateColumn)
+		v1Group.POST("/columns", handlers.CreateColumn)
+		v1Group.GET("/columns/:id", handlers.GetColumn)
 	}
-
 	
 	log.Info("http server is running", slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
 		slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
 		slog.String("swagger", fmt.Sprintf("http://localhost:%d/swagger/index.html", cfg.HttpConfig.Port)))
 
 
-	if err := s.router.Run(":" + strconv.Itoa(cfg.HttpConfig.Port)); err != nil {
-		return fmt.Errorf("%s: %w", op, err)
-	}
+	go func(){
+		if err := s.router.Run(":" + strconv.Itoa(cfg.HttpConfig.Port)); err != nil {
+			httpErrCh <- fmt.Errorf("%s: %w", op, err)
+		}
+	}()
 
-	return nil
+	return s, httpErrCh
 }

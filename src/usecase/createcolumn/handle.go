@@ -30,7 +30,7 @@ func (uc *UC) Handle(cmd CreateColumnCommand) error {
 	if uc.repo.CheckColumn(cmd.Title) {
 	    return ColumnIsExistsErr
 	}
-	
+
 	column, err := domain.NewColumn(cmd.Title, cmd.BoardID)
 	if err != nil {
 	    return fmt.Errorf("%s: %v", op, err)
