@@ -3,7 +3,7 @@
 env : "local" # dev, prod
 
 postgres:
-  host: "postgres://postgres:postgres@host:port/dbname?sslmode=disable"
+  host: "postgres://postgres:postgres@localhost:5431/teamboard?sslmode=disable"
   timeout: 5s
   max_idle_connection: 5
 

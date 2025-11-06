@@ -18,26 +18,21 @@ const (
 
 )
 
-var(
-	httpError chan error
-)
-
 func main() {
 	cfg := config.MustLoad()    //Сделал другой инит конфига
 	log := setupLogger(cfg.Env) //И логгер читаемый
 
 	log.Info("starting application", slog.String("env", cfg.Env))
+	log.Info("config", slog.Any("cfg", cfg))
 
-	rep, err := postgres.New(cfg.StoragePath)
+	rep, err := postgres.New(cfg.PostgresConfig.Host)
 	if err != nil {
 		// log.Error("can't create repository", slog.Error(err))
 		panic(err)
 	}
+	log.Info("repository connected", slog.String("path", cfg.PostgresConfig.Host))
 
 	httpsrv, httpErrCh := initAndStartHTTPServer(cfg, rep)
-	if err != nil {
-		panic(err)
-	}
 
 	stop := make(chan os.Signal, 1)
     signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)

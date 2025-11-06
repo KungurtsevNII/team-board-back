@@ -13,9 +13,15 @@ const (
 )
 
 type Config struct {
-	Env         string         `yaml:"env" env-default:"local"`
-	StoragePath string         `yaml:"storage_path"` //пока убрал env-required:"true"`
-	HttpConfig  HTTPConfig `yaml:"http_server"`
+	Env            string         `yaml:"env" env-default:"local"`
+	PostgresConfig PostgresConfig `yaml:"postgres"` //пока убрал env-required:"true"`
+	HttpConfig     HTTPConfig     `yaml:"http_server"`
+}
+
+type PostgresConfig struct {
+	Host              string        `yaml:"host"`
+	Mimeout           time.Duration `yaml:"timeout"`
+	MaxIdleConnection int           `yaml:"max_idle_connection"`
 }
 
 type HTTPConfig struct {
