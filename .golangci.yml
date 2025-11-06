@@ -5,10 +5,8 @@ version: "2"
 settings:
   run:
     # Проверяем весь проект (./...)
-    tests: false         # Линтим ли тестовые файлы
-    timeout: 3m          # Лимит времени на выполнение
+    tests: true
     skip-dirs:
-      - pkg              # Игнорируем публичные утилиты
       - migrations       # Игнорируем SQL
       - config           # Игнорируем YAML
     allow-parallel-runners: true
@@ -32,13 +30,22 @@ settings:
       - revive          # Анализ стиля кода
       - unparam         # Неиспользуемые параметры
       - prealloc        # Предварительное выделение слайсов, где это нужно
-
+      - gosec           # Поиск уязвимостей безопасности
+      - gocritic        # Строгие проверки стиля
+      - bodyclose       # Проверка закрытия HTTP body
+      - nilerr          # Проверка возврата nil вместо ошибки
+      - errorlint       # Проверка оборачивания ошибок
+      - misspell        # Орфографические ошибки
+      - gocognit        # Когнитивная сложность (альтернатива gocyclo)
+      - nilnil          # Запрет возврата (nil, nil)
 # ========================
 # Настройки отдельных линтеров
 # ========================
   linters-settings:
     gocyclo:
       min-complexity: 15   # Допустимая сложность функции
+    gocognit:
+      min-complexity: 20  # Когнитивная сложность
     dupl:
       threshold: 150       # Минимальное количество повторяющихся токенов
     revive:
@@ -51,8 +58,26 @@ settings:
         - name: unused-parameter
         - name: exported
           severity: warning
+        - name: error-strings  # Ошибки с маленькой буквы
+        - name: error-return   # error всегда последний параметр
+        - name: context-as-argument  # context первым параметром
     goimports:
       local-prefixes: github.com/KungurtsevNII/team-board-back
+    govet:
+      enable-all: true
+      disable:
+        - shadow  # Слишком много ложных срабатываний
+
+    errcheck:
+      check-type-assertions: true  # 🆕 Проверка type assertion
+      check-blank: true            # 🆕 Проверка _ = err
+
+    gosec:
+      excludes:
+        - G104  # Unhandled errors (дублирует errcheck)
+
+    staticcheck:
+        checks: [ "all" ]
 
 # ========================
 # Вывод результатов
@@ -64,6 +89,7 @@ settings:
       - path: _test\.go
         linters:
           - lll
+          - dupl
     max-issues-per-linter: 0
     max-same-issues: 0
 
@@ -71,6 +97,10 @@ settings:
 # Формат вывода
 # ========================
   output:
-    format: colored-line-number
+    formats:
+      - format: colored-line-number
+        path: stdout
     print-issued-lines: true
+    print-linter-name: true
+    uniq-by-line: true
     sort-results: true

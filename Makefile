@@ -1,21 +1,24 @@
-# Название бинарника линтера
-LINTER = golangci-lint
-# Версия линтера
-LINTER_VERSION = v2.6.0
-# Имя приложения
+# ========================
+# Конфигурация проекта
+# ========================
 APP_NAME ?= teamboard
-# Директория для билдов
 BUILD_DIR = bin
-# Директория, где хранится go bin (по умолчанию ~/go/bin)
+BINARY_PATH = $(BUILD_DIR)/$(APP_NAME)
 GOBIN ?= $(shell go env GOPATH)/bin
-# Полный путь до бинарника линтера
-LINTER_PATH = $(GOBIN)/$(LINTER)
+LINTER_VERSION = v2.6.0
 
-# Показать доступные команды
+# Флаги для сборки
+VERSION ?= $(shell git describe --tags --always --dirty)
+BUILD_FLAGS = -ldflags="-s -w -X main.version=$(VERSION)"
+
+# ========================
+# Основные команды
+# ========================
 .PHONY: help
 help:
 	@echo "Доступные команды:"
 	@echo "  make build          — собрать бинарник"
+	@echo "  make build-flags    — собрать бинарник with flags"
 	@echo "  make run            — запустить приложение"
 	@echo "  make test           — запустить unit-тесты"
 	@echo "  make deps           — обновить зависимости (go mod tidy && go mod vendor)"
@@ -30,13 +33,20 @@ help:
 build:
 	@echo "Сборка $(APP_NAME)..."
 	@mkdir -p $(BUILD_DIR)
-	go build -o $(BUILD_DIR)/$(APP_NAME) ./cmd/$(APP_NAME)
+	go build -o $(BINARY_PATH) ./cmd/$(APP_NAME)
 
-# Запуск приложения
+# Сборка бинарника with flags
+.PHONY: build-flags
+build-flags:
+	@echo "Сборка $(APP_NAME) с флагами: $(BUILD_FLAGS)..."
+	@mkdir -p $(BUILD_DIR)
+	go build $(BUILD_FLAGS) -o $(BINARY_PATH) ./cmd/$(APP_NAME)
+
+# Запуск приложения (оба файла)
 .PHONY: run
 run:
 	@echo "Запуск приложения..."
-	go run ./cmd/$(APP_NAME)
+	go run ./cmd/$(APP_NAME)/init.go ./cmd/$(APP_NAME)/main.go
 
 # Запуск тестов
 .PHONY: test
@@ -63,24 +73,24 @@ clean-build:
 # Установка golangci-lint (если отсутствует)
 .PHONY: install-lint
 install-lint:
-	@if [ ! -f "$(LINTER_PATH)" ]; then \
+	@if [ ! -f "$(GOBIN)/golangci-lint" ]; then \
 		echo "Устанавливаю golangci-lint $(LINTER_VERSION)..."; \
 		go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(LINTER_VERSION); \
 	else \
-		echo "golangci-lint уже установлен в $(LINTER_PATH)"; \
+		echo "golangci-lint уже установлен в $(GOBIN)/golangci-lint"; \
 	fi
 
 # Запуск линтера
 .PHONY: lint
-lint: install-lint
+lint: lint
 	@echo "Запуск линтера..."
-	@$(LINTER) run ./...
+	@$(GOBIN)/golangci-lint run ./...
 
 # Запуск линтера с автоисправлением
 .PHONY: lint-fix
-lint-fix: install-lint
+lint-fix: lint-fix
 	@echo "Запуск линтера с автоисправлением..."
-	@$(LINTER) run --fix ./...
+	@$(GOBIN)/golangci-lint run --fix ./...
 
 # Обмазаться всем для коммита
 .PHONY: pre-commit
