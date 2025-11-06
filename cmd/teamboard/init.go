@@ -11,6 +11,8 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/config"
 	"github.com/KungurtsevNII/team-board-back/src/handlers"
 	"github.com/KungurtsevNII/team-board-back/src/repository/postgres"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/createcolumn"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/getcolumn"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -66,10 +68,23 @@ func initAndStartHTTPServer(
 
 	//TODO: Добавить хендлеры
 	//TODO: Добавить рекавери
-	handlers := handlers.NewHttpHandler(&cfg.HttpConfig, repo)
+
+	handlers := handlers.NewHttpHandler(
+		&cfg.HttpConfig,
+		createcolumn.NewUC(repo),
+		getcolumn.NewUC(repo),
+	)
+
+	mainGroup := router.Group(mainPath)
+
+	v1Group := mainGroup.Group("/v1")
+	{
+		v1Group.GET("/columns", handlers.CreateColumn)
+	}
 
 	
 	log.Info("http server is running", slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
+		slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
 		slog.String("swagger", fmt.Sprintf("http://localhost:%d/swagger/index.html", cfg.HttpConfig.Port)))
 
 

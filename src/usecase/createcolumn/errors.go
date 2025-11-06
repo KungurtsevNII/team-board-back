@@ -5,5 +5,5 @@ import (
 )
 
 var (
-	CreateColumnIsExistsErrr = errors.New("column is exists")
+	ColumnIsExistsErr = errors.New("column is exists")
 )

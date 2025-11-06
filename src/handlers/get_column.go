@@ -7,51 +7,43 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/KungurtsevNII/team-board-back/src/domain"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createcolumn"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/getcolumn"
 )
 
 type (
 	// Контракт/Сваггер
-	CreateColumnRequest struct {
-		Title   string `json:"title"`
-		BoardID string  `json:"board_id"`
-	}
 
-	CreateColumnResponse struct {
+	GetColumnResponse struct {
 		Title   string `json:"title"`
 		BoardID string  `json:"board_id"`
 	}
 
 	// Один юз кейс, на один запрос, нра один пользвательский сценарий.
-	CreateColumnUseCase interface {
-		Handle(cmd createcolumn.CreateColumnCommand) error
+	GetColumnUseCase interface {
+		Handle(cmd getcolumn.GetColumnCommand) (domain.Column,error)
 	}
 )
 
-func (h *HttpHandler) CreateColumn(c *gin.Context) {
+func (h *HttpHandler) GetColumn(c *gin.Context) {
 	const op = "handlers.Healthcheck"
 
 	log := slog.Default()
 	log.With("op", op, "method", c.Request.Method)
 	log.Info(c.Request.URL.Path)
 
-
 	// todo получить параметры из тела
-	var req CreateColumnRequest
-	if err := c.BindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-	}
+	id := c.Param("id")
 
-	cmd, err := createcolumn.NewCreateColumnCommand(req.Title, req.BoardID)
+	cmd, err := getcolumn.NewGetColumnCommand(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 	}
 
-	err = h.createColumnUC.Handle(cmd)
+	dmn, err := h.getColumnUC.Handle(cmd)
 	if err != nil {
 		switch {
 		case errors.Is(err, createcolumn.ColumnIsExistsErr):
@@ -61,8 +53,14 @@ func (h *HttpHandler) CreateColumn(c *gin.Context) {
 		}
 	}
 
+	resp := GetColumnResponse{
+		Title:   dmn.Name,
+		BoardID: dmn.BoardID,
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status": http.StatusOK,
+		"data":   resp,
 	})
 }
 
