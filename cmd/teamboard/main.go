@@ -7,7 +7,10 @@ import (
 	"syscall"
 
 	"github.com/KungurtsevNII/team-board-back/src/config"
+	"github.com/KungurtsevNII/team-board-back/src/handlers"
 	"github.com/KungurtsevNII/team-board-back/src/repository/postgres"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/createcolumn"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/getcolumn"
 	"github.com/sytallax/prettylog"
 )
 
@@ -27,12 +30,19 @@ func main() {
 
 	rep, err := postgres.New(cfg.PostgresConfig.Host)
 	if err != nil {
-		// log.Error("can't create repository", slog.Error(err))
 		panic(err)
 	}
+
+	handlers := handlers.NewHttpHandler(
+		&cfg.HttpConfig,
+		createcolumn.NewUC(rep),
+		getcolumn.NewUC(rep),
+	)
+
+	
 	log.Info("repository connected", slog.String("path", cfg.PostgresConfig.Host))
 
-	httpsrv, httpErrCh := initAndStartHTTPServer(cfg, rep)
+	httpsrv, httpErrCh := initAndStartHTTPServer(cfg, handlers)
 
 	stop := make(chan os.Signal, 1)
     signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
@@ -44,7 +54,7 @@ func main() {
     case sig := <-stop:
         log.Info("received shutdown signal", slog.String("signal", sig.String()))
 		httpsrv.srv.Close()
-		httpsrv.rep.Close()
+		rep.Close()
         log.Info("shutdown complete")
     }
 }

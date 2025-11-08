@@ -1,13 +1,10 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE boards (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    short_name VARCHAR(25) NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL
+    short_name VARCHAR(50) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
+    deleted_at TIMESTAMPTZ NULL
 );
-
-CREATE INDEX idx_boards_deleted_at ON boards(deleted_at);
-CREATE INDEX idx_boards_short_name ON boards(short_name);

@@ -10,34 +10,30 @@ import (
 
 	"github.com/KungurtsevNII/team-board-back/src/config"
 	"github.com/KungurtsevNII/team-board-back/src/handlers"
-	"github.com/KungurtsevNII/team-board-back/src/repository/postgres"
-	"github.com/KungurtsevNII/team-board-back/src/usecase/createcolumn"
-	"github.com/KungurtsevNII/team-board-back/src/usecase/getcolumn"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
-const(
+const (
 	mainPath = "/api"
 )
 
 type HttpServer struct {
-    router *gin.Engine
-	srv *http.Server
-	rep *postgres.Repository
-	cfg *config.Config
+	router   *gin.Engine
+	srv      *http.Server
+	handlers *handlers.HttpHandler
+	cfg      *config.Config
 }
-
 
 func initAndStartHTTPServer(
 	cfg *config.Config,
-	repo *postgres.Repository,
-	) (*HttpServer, <-chan error) {
+	handlers *handlers.HttpHandler,
+) (*HttpServer, <-chan error) {
 	log := slog.Default()
 	const op = "initAndStartHttpServer"
 
 	httpErrCh := make(chan error)
-	
+
 	router := gin.Default()
 	//Это нужно для того чтобы фронт мог достучаться, пока AllowOrigins: []string{"*"}, но потом это нужно поменять на хост фронта
 	//TODO: Поменять AllowOrigins: []string{"*"}, на хост фронта
@@ -49,13 +45,11 @@ func initAndStartHTTPServer(
 		AllowCredentials: true,                                                         // Разрешить отправку учетных данных (например, куки)
 		MaxAge:           12 * time.Hour,                                               // Время кэширования preflight-запросов
 	}))
-	
 
 	//TODO: Добавить сваггер
 	// Будет тут будет запуск сваггера
 	// docs.SwaggerInfo.BasePath = mainPath
 	// routerGroup.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.HttpConfig.Port),
@@ -63,22 +57,13 @@ func initAndStartHTTPServer(
 	}
 
 	s := &HttpServer{
-		cfg: cfg,
-		srv: srv,
-		rep: repo,
+		cfg:    cfg,
+		srv:    srv,
+		handlers:    handlers,
 		router: router,
 	}
-	
-	//Handlers
 
-	//TODO: Добавить хендлеры
 	//TODO: Добавить рекавери
-
-	handlers := handlers.NewHttpHandler(
-		&cfg.HttpConfig,
-		createcolumn.NewUC(repo),
-		getcolumn.NewUC(repo),
-	)
 
 	mainGroup := router.Group(mainPath)
 
@@ -89,13 +74,12 @@ func initAndStartHTTPServer(
 		v1Group.POST("/columns", handlers.CreateColumn)
 		v1Group.GET("/columns/:id", handlers.GetColumn)
 	}
-	
+
 	log.Info("http server is running", slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
 		slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
 		slog.String("swagger", fmt.Sprintf("http://localhost:%d/swagger/index.html", cfg.HttpConfig.Port)))
 
-
-	go func(){
+	go func() {
 		if err := s.router.Run(":" + strconv.Itoa(cfg.HttpConfig.Port)); err != nil {
 			httpErrCh <- fmt.Errorf("%s: %w", op, err)
 		}
