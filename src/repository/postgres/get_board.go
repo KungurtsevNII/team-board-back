@@ -23,9 +23,7 @@ func (r Repository) GetBoard(ID string) (domain.Board, error) {
 	defer tx.Rollback(context.TODO())
 
 	row := tx.QueryRow(context.TODO(),
-		`SELECT id, name, short_name, created_at, updated_at, deleted_at
-		FROM boards
-		WHERE id = $1`,
+		`SELECT id, name, short_name, created_at, updated_at, deleted_at FROM boards WHERE id = $1`,
 		uid,
 	)
 
@@ -41,6 +39,11 @@ func (r Repository) GetBoard(ID string) (domain.Board, error) {
 		case errors.Is(err, pgx.ErrNoRows):
 			return domain.Board{}, domain.ErrBoardNotFound
 		}
+		return domain.Board{}, err
+	}
+
+	err = tx.Commit(context.TODO())
+	if err != nil {
 		return domain.Board{}, err
 	}
 
