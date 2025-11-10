@@ -3,6 +3,7 @@ package domain
 import (
 	// "errors"
 	// "strings"
+	"errors"
 	"regexp"
 	"time"
 
@@ -35,3 +36,6 @@ func NewBoard(name string, shortName string) (*Board, error) {
 		DeletedAt: nil,
 	}, nil
 }
+
+var ErrBoardNotFound = errors.New("board not found")
+var ErrInvalidID = errors.New("invalid id format")

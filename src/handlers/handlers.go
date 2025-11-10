@@ -16,6 +16,7 @@ type HttpHandler struct {
 	createColumnUC CreateColumnUseCase
 	getColumnUC    GetColumnUseCase
 	createBoardUC  CreateBoardUseCase
+	getBoardUC     GetBoardUseCase
 }
 
 func NewHttpHandler(
@@ -23,6 +24,7 @@ func NewHttpHandler(
 	columnUC CreateColumnUseCase,
 	getColumnUC GetColumnUseCase,
 	createBoardUC CreateBoardUseCase,
+	getBoardUC GetBoardUseCase,
 
 ) *HttpHandler {
 	return &HttpHandler{
@@ -30,6 +32,7 @@ func NewHttpHandler(
 		createColumnUC: columnUC,
 		getColumnUC:    getColumnUC,
 		createBoardUC:  createBoardUC,
+		getBoardUC:     getBoardUC,
 	}
 }
 

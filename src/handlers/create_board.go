@@ -23,6 +23,7 @@ type (
 )
 
 func (h *HttpHandler) CreateBoard(c *gin.Context) {
+	const op = "handlers.CreateBoard"
 	var req CreateBoardReqest
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
