@@ -73,7 +73,7 @@ func initAndStartHTTPServer(
 	{
 		v1Group.POST("/columns", handlers.CreateColumn)
 		v1Group.GET("/columns/:id", handlers.GetColumn)
-		v1Group.PUT("/board", handlers.CreateBoard)
+		v1Group.POST("/board", handlers.CreateBoard)
 	}
 
 	log.Info("http server is running", slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
