@@ -4,16 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"log/slog"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Repository struct {
 	pool *pgxpool.Pool
-}
-
-type RepositoryInf interface {
-    
 }
 
 func New(storagePath string) (*Repository, error) {
@@ -35,6 +32,6 @@ func New(storagePath string) (*Repository, error) {
 	}, nil
 }
 
-func (s *Repository) Close(){
+func (s *Repository) Close() {
 	s.pool.Close()
 }

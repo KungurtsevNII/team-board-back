@@ -9,6 +9,7 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/config"
 	"github.com/KungurtsevNII/team-board-back/src/handlers"
 	"github.com/KungurtsevNII/team-board-back/src/repository/postgres"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/createboard"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createcolumn"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/getcolumn"
 	"github.com/sytallax/prettylog"
@@ -18,7 +19,6 @@ const (
 	envLocal = "local"
 	envDev   = "dev"
 	envProd  = "prod"
-
 )
 
 func main() {
@@ -37,26 +37,26 @@ func main() {
 		&cfg.HttpConfig,
 		createcolumn.NewUC(rep),
 		getcolumn.NewUC(rep),
+		createboard.NewUC(rep),
 	)
 
-	
 	log.Info("repository connected", slog.String("path", cfg.PostgresConfig.Host))
 
 	httpsrv, httpErrCh := initAndStartHTTPServer(cfg, handlers)
 
 	stop := make(chan os.Signal, 1)
-    signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 
-    select {
-    case err := <-httpErrCh:
-        log.Error("http server failed", slog.Any("error", err))
-        os.Exit(1)
-    case sig := <-stop:
-        log.Info("received shutdown signal", slog.String("signal", sig.String()))
+	select {
+	case err := <-httpErrCh:
+		log.Error("http server failed", slog.Any("error", err))
+		os.Exit(1)
+	case sig := <-stop:
+		log.Info("received shutdown signal", slog.String("signal", sig.String()))
 		httpsrv.srv.Close()
 		rep.Close()
-        log.Info("shutdown complete")
-    }
+		log.Info("shutdown complete")
+	}
 }
 
 func setupLogger(env string) *slog.Logger {

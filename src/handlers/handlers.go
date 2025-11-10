@@ -15,27 +15,23 @@ type HttpHandler struct {
 	cfg            *config.HTTPConfig
 	createColumnUC CreateColumnUseCase
 	getColumnUC    GetColumnUseCase
+	createBoardUC  CreateBoardUseCase
 }
 
 func NewHttpHandler(
 	cfg *config.HTTPConfig,
 	columnUC CreateColumnUseCase,
 	getColumnUC GetColumnUseCase,
+	createBoardUC CreateBoardUseCase,
+
 ) *HttpHandler {
 	return &HttpHandler{
 		cfg:            cfg,
 		createColumnUC: columnUC,
 		getColumnUC:    getColumnUC,
+		createBoardUC:  createBoardUC,
 	}
 }
-
-// type BoardUseCase interface {
-
-// }
-
-// type TaskUseCase interface {
-
-// }
 
 func (s *HttpHandler) Healthcheck(c *gin.Context) {
 	// const op = "handlers.Healthcheck"

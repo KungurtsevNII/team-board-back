@@ -57,10 +57,10 @@ func initAndStartHTTPServer(
 	}
 
 	s := &HttpServer{
-		cfg:    cfg,
-		srv:    srv,
-		handlers:    handlers,
-		router: router,
+		cfg:      cfg,
+		srv:      srv,
+		handlers: handlers,
+		router:   router,
 	}
 
 	//TODO: Добавить рекавери
@@ -73,6 +73,7 @@ func initAndStartHTTPServer(
 	{
 		v1Group.POST("/columns", handlers.CreateColumn)
 		v1Group.GET("/columns/:id", handlers.GetColumn)
+		v1Group.PUT("/board", handlers.CreateBoard)
 	}
 
 	log.Info("http server is running", slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
