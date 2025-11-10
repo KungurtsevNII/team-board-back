@@ -1,0 +1,10 @@
+env : "dev" # dev, prod
+
+postgres:
+  host: "postgres://postgres:admin1422@localhost:5433/teamboard?sslmode=disable"
+  timeout: 5s
+  max_idle_connection: 5
+
+http_server:
+  port: 8080
+  timeout: 5s

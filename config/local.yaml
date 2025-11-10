@@ -1,7 +1,12 @@
 # Пример env файла
 
 env : "local" # dev, prod
-storage_path : "postgres://postgres:postgres@host:port/dbname?sslmode=disable"
-rest:
+
+postgres:
+  host: "postgres://postgres:postgres@localhost:5431/teamboard?sslmode=disable"
+  timeout: 5s
+  max_idle_connection: 5
+
+http_server:
   port: 8080
   timeout: 5s

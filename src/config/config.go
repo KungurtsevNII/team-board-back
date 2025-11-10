@@ -4,70 +4,77 @@ import (
 	"flag"
 	"os"
 	"time"
+
 	"github.com/ilyakaznacheev/cleanenv"
 )
-const(
+
+const (
 	defaultLocalConfigPath = "config/local.yaml"
 )
 
-type Config struct{
-	Env string `yaml:"env" env-default:"local"`
-	StoragePass string `yaml:"storage_path" env-required:"true"`
-	REST RESTConfig `yaml:"rest"`
+type Config struct {
+	Env            string         `yaml:"env" env-default:"local"`
+	PostgresConfig PostgresConfig `yaml:"postgres"` //пока убрал env-required:"true"`
+	HttpConfig     HTTPConfig     `yaml:"http_server"`
 }
 
+type PostgresConfig struct {
+	Host              string        `yaml:"host"`
+	Mimeout           time.Duration `yaml:"timeout"`
+	MaxIdleConnection int           `yaml:"max_idle_connection"`
+}
 
-type RESTConfig struct{
-	Port int `yaml:"port"`
+type HTTPConfig struct {
+	Port    int           `yaml:"port"`
 	Timeout time.Duration `yaml:"timeout"`
 }
 
-func MustLoad() *Config{
+func MustLoad() *Config {
 	configPath := fetchConfigPath()
-	if configPath == ""{
+	if configPath == "" {
 		// В идеале передавать флаг, но пока пусть будет так
 		// panic("config path is empty")
 		configPath = defaultLocalConfigPath
 	}
-	if _, err := os.Stat(configPath); os.IsNotExist(err){
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		panic("config path does not exist: " + configPath)
 	}
 
 	var cfg Config
 
-	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil{
+	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
 		panic("failed to read config: " + err.Error())
 	}
 
 	return &cfg
 }
 
-func MustLoadByPath(configPath string) *Config{
-	if configPath == ""{
+func MustLoadByPath(configPath string) *Config {
+	if configPath == "" {
 		// В идеале передавать флаг, но пока пусть будет так
 		// panic("config path is empty")
 		configPath = defaultLocalConfigPath
 	}
-	if _, err := os.Stat(configPath); os.IsNotExist(err){
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		panic("config path does not exist: " + configPath)
 	}
 
 	var cfg Config
 
-	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil{
+	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
 		panic("failed to read config: " + err.Error())
 	}
-	
+
 	return &cfg
 }
 
-func fetchConfigPath() string{
+func fetchConfigPath() string {
 	var res string
 
 	flag.StringVar(&res, "config", "", "path to config file")
 	flag.Parse()
 
-	if res == ""{
+	if res == "" {
 		res = os.Getenv("CONFIG_PATH")
 	}
 

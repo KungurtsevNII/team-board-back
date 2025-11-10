@@ -1,0 +1,40 @@
+version: "3.8"
+
+services: 
+  db:
+    image: postgres:latest
+    healthcheck:
+      test: pg_isready -U ${DB_USERNAME} -d ${DB_NAME}
+      interval: 3s
+      retries: 15
+      start_period: 5s
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes: 
+     - pgdata:/var/lib/postgresql/data
+    ports:
+      - 5433:5432
+    networks: 
+      - default
+
+  migrate:
+    image: migrate/migrate:4
+    command: 
+      ["-path", "/migrations", "-database", "postgres://${DB_USERNAME}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable", "up"]
+    volumes:
+      - ./migrations:/migrations:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: 
+      - default
+
+volumes:
+  pgdata: {}
+
+networks:
+  default:
+
+name: teamboard-dev
