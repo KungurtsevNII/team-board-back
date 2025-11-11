@@ -71,7 +71,7 @@ func initAndStartHTTPServer(
 
 	v1Group := mainGroup.Group("/v1")
 	{
-		v1Group.POST("/columns", handlers.CreateColumn)
+		v1Group.POST("/boards/:board_id/columns", handlers.CreateColumn)
 		v1Group.GET("/columns/:id", handlers.GetColumn)
 		v1Group.POST("/board", handlers.CreateBoard)
 	}

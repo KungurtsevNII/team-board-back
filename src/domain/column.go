@@ -2,24 +2,28 @@ package domain
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Column struct {
-	ID        string
-	BoardID   string
+	ID        uuid.UUID
+	BoardID   uuid.UUID
+	OrderNum  int64
 	Name      string
 	CreatedAt time.Time
-	DeletedAt *time.Time
 	UpdatedAt time.Time
+	DeletedAt *time.Time
 }
 
-func NewColumn(boardID string, name string) (*Column, error) {
-	// todo validation
+func NewColumn(boardID uuid.UUID, name string, orderNum int64) (*Column, error) {
+	id := uuid.New()
 
 	return &Column{
-		ID:        "adsasdas",
+		ID:        id,
 		BoardID:   boardID,
 		Name:      name,
+		OrderNum:  orderNum,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		DeletedAt: nil,

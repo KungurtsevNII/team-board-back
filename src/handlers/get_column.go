@@ -1,14 +1,12 @@
 package handlers
 
 import (
-	"errors"
 	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/KungurtsevNII/team-board-back/src/domain"
-	"github.com/KungurtsevNII/team-board-back/src/usecase/createcolumn"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/getcolumn"
 )
 
@@ -46,16 +44,16 @@ func (h *HttpHandler) GetColumn(c *gin.Context) {
 	dmn, err := h.getColumnUC.Handle(cmd)
 	if err != nil {
 		switch {
-		case errors.Is(err, createcolumn.ColumnIsExistsErr):
-			c.JSON(http.StatusConflict, gin.H{
-				"error": err.Error(),
-			})
+		// case errors.Is(err, createcolumn.ErrColumnIsExistsErr):
+		// 	c.JSON(http.StatusConflict, gin.H{
+		// 		"error": err.Error(),
+		// 	})
 		}
 	}
 
 	resp := GetColumnResponse{
 		Title:   dmn.Name,
-		BoardID: dmn.BoardID,
+		// BoardID: dmn.BoardID,
 	}
 
 	c.JSON(http.StatusOK, gin.H{

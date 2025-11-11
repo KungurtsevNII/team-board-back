@@ -6,11 +6,18 @@ import (
 
 	"log/slog"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type PgxPoolIface interface {
+	BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error)
+	Close()
+	Ping(ctx context.Context) error
+}
+
 type Repository struct {
-	pool *pgxpool.Pool
+	pool PgxPoolIface
 }
 
 func New(storagePath string) (*Repository, error) {

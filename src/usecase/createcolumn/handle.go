@@ -1,9 +1,14 @@
 package createcolumn
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/KungurtsevNII/team-board-back/src/domain"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	// "github.com/KungurtsevNII/team-board-back/src/repository/postgres"
 )
 
@@ -19,21 +24,49 @@ func NewUC(repo Repo) *UC {
 
 
 type Repo interface {
-	CheckColumn(name string) bool
-	CreateColumn(column domain.Column) error
+	CheckBoard(id string) bool 
+	GetLastOrderNumColumn(
+		ctx context.Context, 
+		boardID uuid.UUID,
+	) (orderNum int64, err error)
+	CreateColumn(
+		ctx context.Context,
+		column *domain.Column,
+	) (err error)
+
 }
 
-func (uc *UC) Handle(cmd CreateColumnCommand) error {
-	//тут прям обращение к базе данных
+func (uc *UC) Handle(ctx context.Context, cmd CreateColumnCommand) (column *domain.Column, err error) {
 	const op = "createcolumn.Handle"
+	log := slog.Default().With("op", op, "cmd", cmd)
 
-	if uc.repo.CheckColumn(cmd.Title) {
-	    return ColumnIsExistsErr
+	if !uc.repo.CheckBoard(cmd.BoardID.String()){
+	    return nil, fmt.Errorf("%s: %v", op, ErrBoardIsNotExistsErr)
 	}
 
-	column, err := domain.NewColumn(cmd.Title, cmd.BoardID)
+	orderNum, err := uc.repo.GetLastOrderNumColumn(ctx, cmd.BoardID)
 	if err != nil {
-	    return fmt.Errorf("%s: %v", op, err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			orderNum = 0
+		}else{
+			log.Error("failed to get last order num", slog.String("err", err.Error()))
+			return nil, fmt.Errorf("%s: %v", op, ErrGetLastOrderNumErr)
+		}
+	}else{
+		orderNum++
 	}
-	return uc.repo.CreateColumn(*column)
+
+	column, err = domain.NewColumn(cmd.BoardID, cmd.Name, orderNum)
+	if err != nil {
+		log.Error("failed to create domain column", slog.String("err", err.Error()))
+	    return nil, fmt.Errorf("%s: %v", op, ErrValidationFailed)
+	}
+
+	err = uc.repo.CreateColumn(ctx, column)
+	if err != nil {
+		log.Error("failed to create column", slog.String("err", err.Error()))
+	    return nil, fmt.Errorf("%s: %v", op, ErrCreateColumnErr)
+	}
+
+	return column, nil
 }

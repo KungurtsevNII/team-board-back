@@ -33,6 +33,25 @@ func NewHttpHandler(
 	}
 }
 
+type ErrorResponse struct {
+	Err Error `json:"error"`
+}
+
+type Error struct{
+	Code int `json:"code"`
+	Message string `json:"message"`
+}
+
+func NewErrorResponse(c *gin.Context,statusCode int, message string) {
+	err := ErrorResponse{
+		Err : Error{
+			Code: statusCode,
+			Message: message,
+		},
+	}
+	c.AbortWithStatusJSON(statusCode, err)
+}
+
 func (s *HttpHandler) Healthcheck(c *gin.Context) {
 	// const op = "handlers.Healthcheck"
 	// log := s.log.With("op", op, "method", c.Request.Method)
