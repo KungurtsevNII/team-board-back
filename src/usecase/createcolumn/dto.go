@@ -2,7 +2,6 @@ package createcolumn
 
 import (
 	"fmt"
-	"log/slog"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -14,15 +13,12 @@ type CreateColumnCommand struct {
 }
 
 func NewCreateColumnCommand(boardID, name string) (CreateColumnCommand, error) {
-	const op = "createcolumn.NewCreateColumnCommand"
-	log := slog.Default().With("op", op,"boardID", boardID, "name", name,)
 	//TODO: Возможно стоит вынести как синглтон
 	validate := validator.New()
 
 	bID, err := uuid.Parse(boardID)
 	if err != nil {
-		log.Warn("failed to parse boardID", "err", err)
-		return CreateColumnCommand{}, fmt.Errorf("%s: %w", op, ErrInvalidUUID)
+		return CreateColumnCommand{}, fmt.Errorf("%w: %v", ErrInvalidUUID, err)
 	}
 
 	ccc := CreateColumnCommand{
@@ -32,8 +28,7 @@ func NewCreateColumnCommand(boardID, name string) (CreateColumnCommand, error) {
 
 	err = validate.Struct(ccc)
 	if err != nil {
-		log.Warn("validation failed", "err", err)
-		return CreateColumnCommand{}, fmt.Errorf("%s: %w", op, ErrValidationFailed)
+		return CreateColumnCommand{}, fmt.Errorf("%w: %v", ErrValidationFailed, err)
 	}
 
 	return ccc, nil

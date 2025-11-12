@@ -8,9 +8,16 @@ import (
 
 	"github.com/KungurtsevNII/team-board-back/src/domain"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+)
+
+var (
+	ErrUniqueViolation   = &pgconn.PgError{Code: "23505"}
+	ErrForeignKeyViolation = &pgconn.PgError{Code: "23503"}
+	ErrNotNullViolation  = &pgconn.PgError{Code: "23502"}
 )
 
 func TestCreateColumn(t *testing.T) {
@@ -20,7 +27,7 @@ func TestCreateColumn(t *testing.T) {
 		name        string
 		column      *domain.Column
 		mockSetup   func(mock pgxmock.PgxPoolIface)
-		expectedErr bool
+		expectedErr error
 	}{
 		{
 			name: "успешное создание колонки",
@@ -34,47 +41,146 @@ func TestCreateColumn(t *testing.T) {
 				DeletedAt: nil,
 			},
 			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				mock.ExpectBegin()
 				mock.ExpectExec(`INSERT INTO "columns"`).
 					WillReturnResult(pgxmock.NewResult("INSERT", 1))
-				mock.ExpectCommit()
 			},
-			expectedErr: false,
+			expectedErr: nil,
 		},
 		{
-			name: "ошибка при начале транзакции",
+			name: "создание колонки с DeletedAt",
 			column: &domain.Column{
 				ID:        uuid.New(),
 				BoardID:   uuid.New(),
-				Name:      "In Progress",
-				OrderNum:  3,
+				Name:      "Done",
+				OrderNum:  2,
 				CreatedAt: now,
 				UpdatedAt: now,
-				DeletedAt: nil,
+				DeletedAt: &now,
 			},
 			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				mock.ExpectBegin().WillReturnError(errors.New("begin tx error"))
-			},
-			expectedErr: true,
-		},
-		{
-			name: "ошибка при INSERT",
-			column: &domain.Column{
-				ID:        uuid.New(),
-				BoardID:   uuid.New(),
-				Name:      "Review",
-				OrderNum:  4,
-				CreatedAt: now,
-				UpdatedAt: now,
-				DeletedAt: nil,
-			},
-			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				mock.ExpectBegin()
 				mock.ExpectExec(`INSERT INTO "columns"`).
-					WillReturnError(errors.New("constraint violation"))
-				mock.ExpectRollback()
+					WillReturnResult(pgxmock.NewResult("INSERT", 1))
 			},
-			expectedErr: true,
+			expectedErr: nil,
+		},
+		{
+			name: "создание колонки с пустым именем",
+			column: &domain.Column{
+				ID:        uuid.New(),
+				BoardID:   uuid.New(),
+				Name:      "",
+				OrderNum:  0,
+				CreatedAt: now,
+				UpdatedAt: now,
+				DeletedAt: nil,
+			},
+			mockSetup: func(mock pgxmock.PgxPoolIface) {
+				mock.ExpectExec(`INSERT INTO "columns"`).
+					WillReturnResult(pgxmock.NewResult("INSERT", 1))
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "создание колонки с длинным именем",
+			column: &domain.Column{
+				ID:        uuid.New(),
+				BoardID:   uuid.New(),
+				Name:      "Very Long Column Name That Might Test Database Limits",
+				OrderNum:  10,
+				CreatedAt: now,
+				UpdatedAt: now,
+				DeletedAt: nil,
+			},
+			mockSetup: func(mock pgxmock.PgxPoolIface) {
+				mock.ExpectExec(`INSERT INTO "columns"`).
+					WillReturnResult(pgxmock.NewResult("INSERT", 1))
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "отрицательный order_num",
+			column: &domain.Column{
+				ID:        uuid.New(),
+				BoardID:   uuid.New(),
+				Name:      "Test",
+				OrderNum:  -1,
+				CreatedAt: now,
+				UpdatedAt: now,
+				DeletedAt: nil,
+			},
+			mockSetup: func(mock pgxmock.PgxPoolIface) {
+				mock.ExpectExec(`INSERT INTO "columns"`).
+					WillReturnResult(pgxmock.NewResult("INSERT", 1))
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "ошибка уникальности - дубликат ID",
+			column: &domain.Column{
+				ID:        uuid.New(),
+				BoardID:   uuid.New(),
+				Name:      "Duplicate",
+				OrderNum:  1,
+				CreatedAt: now,
+				UpdatedAt: now,
+				DeletedAt: nil,
+			},
+			mockSetup: func(mock pgxmock.PgxPoolIface) {
+				mock.ExpectExec(`INSERT INTO "columns"`).
+					WillReturnError(ErrUniqueViolation)
+			},
+			expectedErr: ErrUniqueViolation,
+		},
+		{
+			name: "ошибка внешнего ключа - несуществующий board_id",
+			column: &domain.Column{
+				ID:        uuid.New(),
+				BoardID:   uuid.New(),
+				Name:      "Test",
+				OrderNum:  1,
+				CreatedAt: now,
+				UpdatedAt: now,
+				DeletedAt: nil,
+			},
+			mockSetup: func(mock pgxmock.PgxPoolIface) {
+				mock.ExpectExec(`INSERT INTO "columns"`).
+					WillReturnError(ErrForeignKeyViolation)
+			},
+			expectedErr: ErrForeignKeyViolation,
+		},
+		{
+			name: "ошибка NOT NULL constraint",
+			column: &domain.Column{
+				ID:        uuid.New(),
+				BoardID:   uuid.New(),
+				Name:      "Test",
+				OrderNum:  1,
+				CreatedAt: now,
+				UpdatedAt: now,
+				DeletedAt: nil,
+			},
+			mockSetup: func(mock pgxmock.PgxPoolIface) {
+				mock.ExpectExec(`INSERT INTO "columns"`).
+					WillReturnError(ErrNotNullViolation)
+			},
+			expectedErr: ErrNotNullViolation,
+		},
+		{
+			name: "ошибка подключения",
+			column: &domain.Column{
+				ID:        uuid.New(),
+				BoardID:   uuid.New(),
+				Name:      "Test",
+				OrderNum:  1,
+				CreatedAt: now,
+				UpdatedAt: now,
+				DeletedAt: nil,
+			},
+			mockSetup: func(mock pgxmock.PgxPoolIface) {
+				mock.ExpectExec(`INSERT INTO "columns"`).
+					WillReturnError(errors.New("connection refused"))
+			},
+			expectedErr: errors.New("connection refused"),
 		},
 	}
 
@@ -89,14 +195,14 @@ func TestCreateColumn(t *testing.T) {
 			repo := &Repository{pool: mock}
 			err = repo.CreateColumn(context.Background(), tt.column)
 
-			if tt.expectedErr {
-				assert.Error(t, err)
+			if tt.expectedErr != nil {
+				require.Error(t, err)
+				assert.ErrorContains(t, err, tt.expectedErr.Error())
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 
-			err = mock.ExpectationsWereMet()
-			assert.NoError(t, err)
+			assert.NoError(t, mock.ExpectationsWereMet())
 		})
 	}
 }

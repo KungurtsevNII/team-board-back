@@ -11,7 +11,6 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/repository/postgres"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createboard"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createcolumn"
-	"github.com/KungurtsevNII/team-board-back/src/usecase/getcolumn"
 	"github.com/sytallax/prettylog"
 )
 
@@ -36,7 +35,6 @@ func main() {
 	handlers := handlers.NewHttpHandler(
 		&cfg.HttpConfig,
 		createcolumn.NewUC(rep),
-		getcolumn.NewUC(rep),
 		createboard.NewUC(rep),
 	)
 

@@ -18,54 +18,82 @@ func TestGetLastOrderNumColumn(t *testing.T) {
 		boardID     uuid.UUID
 		mockSetup   func(mock pgxmock.PgxPoolIface)
 		expectedNum int64
-		expectedErr bool
+		expectedErr error
 	}{
 		{
 			name:    "успешное получение последнего order_num",
 			boardID: uuid.New(),
 			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				mock.ExpectBegin()
 				rows := pgxmock.NewRows([]string{"order_num"}).AddRow(int64(5))
 				mock.ExpectQuery(`SELECT "order_num" FROM "columns"`).
 					WillReturnRows(rows)
-				mock.ExpectCommit()
 			},
 			expectedNum: 5,
-			expectedErr: false,
+			expectedErr: nil,
 		},
 		{
-			name:    "нет колонок в доске",
+			name:    "нет колонок в доске - ErrNoRows",
 			boardID: uuid.New(),
 			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				mock.ExpectBegin()
 				mock.ExpectQuery(`SELECT "order_num" FROM "columns"`).
 					WillReturnError(pgx.ErrNoRows)
-				mock.ExpectRollback()
 			},
 			expectedNum: 0,
-			expectedErr: true,
+			expectedErr: pgx.ErrNoRows,
 		},
 		{
-			name:    "ошибка при начале транзакции",
+			name:    "order_num равен нулю",
 			boardID: uuid.New(),
 			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				mock.ExpectBegin().WillReturnError(errors.New("connection error"))
-			},
-			expectedNum: 0,
-			expectedErr: true,
-		},
-		{
-			name:    "ошибка при коммите",
-			boardID: uuid.New(),
-			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				mock.ExpectBegin()
-				rows := pgxmock.NewRows([]string{"order_num"}).AddRow(int64(3))
+				rows := pgxmock.NewRows([]string{"order_num"}).AddRow(int64(0))
 				mock.ExpectQuery(`SELECT "order_num" FROM "columns"`).
 					WillReturnRows(rows)
-				mock.ExpectCommit().WillReturnError(errors.New("commit failed"))
 			},
 			expectedNum: 0,
-			expectedErr: true,
+			expectedErr: nil,
+		},
+		{
+			name:    "большое значение order_num",
+			boardID: uuid.New(),
+			mockSetup: func(mock pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{"order_num"}).AddRow(int64(999999))
+				mock.ExpectQuery(`SELECT "order_num" FROM "columns"`).
+					WillReturnRows(rows)
+			},
+			expectedNum: 999999,
+			expectedErr: nil,
+		},
+		{
+			name:    "отрицательное значение order_num",
+			boardID: uuid.New(),
+			mockSetup: func(mock pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{"order_num"}).AddRow(int64(-1))
+				mock.ExpectQuery(`SELECT "order_num" FROM "columns"`).
+					WillReturnRows(rows)
+			},
+			expectedNum: -1,
+			expectedErr: nil,
+		},
+		{
+			name:    "общая ошибка БД",
+			boardID: uuid.New(),
+			mockSetup: func(mock pgxmock.PgxPoolIface) {
+				mock.ExpectQuery(`SELECT "order_num" FROM "columns"`).
+					WillReturnError(errors.New("database error"))
+			},
+			expectedNum: 0,
+			expectedErr: errors.New("database error"),
+		},
+		{
+			name:    "ошибка сканирования - неверный тип данных",
+			boardID: uuid.New(),
+			mockSetup: func(mock pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{"order_num"}).AddRow("not_a_number")
+				mock.ExpectQuery(`SELECT "order_num" FROM "columns"`).
+					WillReturnRows(rows)
+			},
+			expectedNum: 0,
+			expectedErr: errors.New("'int64' not supported for value kind 'string'"),
 		},
 	}
 
@@ -80,15 +108,16 @@ func TestGetLastOrderNumColumn(t *testing.T) {
 			repo := &Repository{pool: mock}
 			orderNum, err := repo.GetLastOrderNumColumn(context.Background(), tt.boardID)
 
-			if tt.expectedErr {
-				assert.Error(t, err)
+			if tt.expectedErr != nil {
+				require.Error(t, err)
+				assert.ErrorContains(t, err, tt.expectedErr.Error())
+				assert.Equal(t, int64(0), orderNum)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tt.expectedNum, orderNum)
 			}
 
-			err = mock.ExpectationsWereMet()
-			assert.NoError(t, err)
+			assert.NoError(t, mock.ExpectationsWereMet())
 		})
 	}
 }

@@ -43,7 +43,6 @@ func (h *HttpHandler) CreateColumn(c *gin.Context) {
 	log := slog.Default()
 	log.With("op", op)
 
-	//TODO: Возможно стоит убрать в боди
 	BoardID := c.Param("board_id")
 
 	var req CreateColumnRequest
@@ -55,11 +54,16 @@ func (h *HttpHandler) CreateColumn(c *gin.Context) {
 
 	cmd, err := createcolumn.NewCreateColumnCommand(BoardID, req.Name)
 	if err != nil {
+		log.Warn("failed to create command",
+			slog.String("err", err.Error()),
+			slog.String("board_id", BoardID),
+			slog.String("name", req.Name))
+		
 		switch {
 		case errors.Is(err, createcolumn.ErrValidationFailed):
-			NewErrorResponse(c, http.StatusBadRequest, createcolumn.ErrValidationFailed.Error())
+			NewErrorResponse(c, http.StatusBadRequest, "validation failed")
 		case errors.Is(err, createcolumn.ErrInvalidUUID):
-			NewErrorResponse(c, http.StatusNotFound, createcolumn.ErrInvalidUUID.Error())
+			NewErrorResponse(c, http.StatusBadRequest, "invalid board id")
 		default:
 			NewErrorResponse(c, http.StatusInternalServerError, "internal server error")
 		}
@@ -68,11 +72,20 @@ func (h *HttpHandler) CreateColumn(c *gin.Context) {
 
 	dmn, err := h.createColumnUC.Handle(c, cmd)
 	if err != nil {
+		log.Error("failed to create column",
+			slog.String("err", err.Error()),
+			slog.String("board_id", cmd.BoardID.String()),
+			slog.String("name", cmd.Name))
+		
 		switch {
 		case errors.Is(err, createcolumn.ErrBoardIsNotExistsErr):
-			NewErrorResponse(c, http.StatusNotFound, createcolumn.ErrBoardIsNotExistsErr.Error())
+			NewErrorResponse(c, http.StatusNotFound, "board not found")
 		case errors.Is(err, createcolumn.ErrGetLastOrderNumErr):
-			NewErrorResponse(c, http.StatusInternalServerError, createcolumn.ErrGetLastOrderNumErr.Error())
+			NewErrorResponse(c, http.StatusInternalServerError, "failed to process column order")
+		case errors.Is(err, createcolumn.ErrValidationFailed):
+			NewErrorResponse(c, http.StatusBadRequest, "validation failed")
+		case errors.Is(err, createcolumn.ErrCreateColumnErr):
+			NewErrorResponse(c, http.StatusInternalServerError, "failed to create column")
 		default:
 			NewErrorResponse(c, http.StatusInternalServerError, "internal server error")
 		}

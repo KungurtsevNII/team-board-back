@@ -1,8 +1,6 @@
 package domain
 
 import (
-	// "errors"
-	// "strings"
 	"regexp"
 	"time"
 

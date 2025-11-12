@@ -6,7 +6,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 )
 
 func (r Repository) GetLastOrderNumColumn(ctx context.Context, boardID uuid.UUID) (orderNum int64, err error) {
@@ -22,19 +21,9 @@ func (r Repository) GetLastOrderNumColumn(ctx context.Context, boardID uuid.UUID
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
-	tx, err := r.pool.BeginTx(ctx, pgx.TxOptions{})
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
-	}
-	defer tx.Rollback(ctx)
-
-    row := tx.QueryRow(ctx, sql, params...)
+    row := r.pool.QueryRow(ctx, sql, params...)
 	err = row.Scan(&orderNum)
 	if err != nil{
-        return 0, fmt.Errorf("%s: %w", op, err)
-    }
-
-    if err := tx.Commit(ctx); err != nil {
         return 0, fmt.Errorf("%s: %w", op, err)
     }
 

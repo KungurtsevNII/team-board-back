@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -35,6 +37,8 @@ func initAndStartHTTPServer(
 	httpErrCh := make(chan error)
 
 	router := gin.Default()
+	router.Use(RequestLogger()) //Логирование запросов до основной ручки
+
 	//Это нужно для того чтобы фронт мог достучаться, пока AllowOrigins: []string{"*"}, но потом это нужно поменять на хост фронта
 	//TODO: Поменять AllowOrigins: []string{"*"}, на хост фронта
 	router.Use(cors.New(cors.Config{
@@ -72,7 +76,6 @@ func initAndStartHTTPServer(
 	v1Group := mainGroup.Group("/v1")
 	{
 		v1Group.POST("/boards/:board_id/columns", handlers.CreateColumn)
-		v1Group.GET("/columns/:id", handlers.GetColumn)
 		v1Group.POST("/board", handlers.CreateBoard)
 	}
 
@@ -87,4 +90,32 @@ func initAndStartHTTPServer(
 	}()
 
 	return s, httpErrCh
+}
+
+
+func RequestLogger() gin.HandlerFunc {
+    return func(c *gin.Context) {
+		log := slog.Default()
+        body, _ := io.ReadAll(c.Request.Body)
+        c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+
+        headers := c.Request.Header
+
+        query := c.Request.URL.Query()
+
+        pathParams := make(map[string]string)
+        for _, p := range c.Params {
+            pathParams[p.Key] = p.Value
+        }
+
+        log.Info(fmt.Sprintf("%s %s",c.Request.Method, c.Request.URL.Path),
+            "headers", headers,
+            "query", query,
+            "params", pathParams,
+            "path", c.Request.URL.Path,
+            "body", string(body),
+        )
+
+        c.Next()
+    }
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 
 	"github.com/KungurtsevNII/team-board-back/src/domain"
 	"github.com/google/uuid"
@@ -37,11 +36,8 @@ type Repo interface {
 }
 
 func (uc *UC) Handle(ctx context.Context, cmd CreateColumnCommand) (column *domain.Column, err error) {
-	const op = "createcolumn.Handle"
-	log := slog.Default().With("op", op, "cmd", cmd)
-
 	if !uc.repo.CheckBoard(cmd.BoardID.String()){
-	    return nil, fmt.Errorf("%s: %v", op, ErrBoardIsNotExistsErr)
+		return nil, fmt.Errorf("%w: %v", ErrBoardIsNotExistsErr, err)
 	}
 
 	orderNum, err := uc.repo.GetLastOrderNumColumn(ctx, cmd.BoardID)
@@ -49,8 +45,7 @@ func (uc *UC) Handle(ctx context.Context, cmd CreateColumnCommand) (column *doma
 		if errors.Is(err, pgx.ErrNoRows) {
 			orderNum = 0
 		}else{
-			log.Error("failed to get last order num", slog.String("err", err.Error()))
-			return nil, fmt.Errorf("%s: %v", op, ErrGetLastOrderNumErr)
+			return nil, fmt.Errorf("%w: %v", ErrGetLastOrderNumErr, err)
 		}
 	}else{
 		orderNum++
@@ -58,14 +53,12 @@ func (uc *UC) Handle(ctx context.Context, cmd CreateColumnCommand) (column *doma
 
 	column, err = domain.NewColumn(cmd.BoardID, cmd.Name, orderNum)
 	if err != nil {
-		log.Error("failed to create domain column", slog.String("err", err.Error()))
-	    return nil, fmt.Errorf("%s: %v", op, ErrValidationFailed)
+		return nil, fmt.Errorf("%w: %v", ErrValidationFailed, err)
 	}
 
 	err = uc.repo.CreateColumn(ctx, column)
 	if err != nil {
-		log.Error("failed to create column", slog.String("err", err.Error()))
-	    return nil, fmt.Errorf("%s: %v", op, ErrCreateColumnErr)
+		return nil, fmt.Errorf("%w: %v", ErrCreateColumnErr, err)
 	}
 
 	return column, nil
