@@ -23,7 +23,7 @@ func NewUC(repo Repo) *UC {
 
 
 type Repo interface {
-	CheckBoard(id string) bool 
+	CheckBoard(id string, ctx context.Context) bool 
 	GetLastOrderNumColumn(
 		ctx context.Context, 
 		boardID uuid.UUID,
@@ -36,7 +36,7 @@ type Repo interface {
 }
 
 func (uc *UC) Handle(ctx context.Context, cmd CreateColumnCommand) (column *domain.Column, err error) {
-	if !uc.repo.CheckBoard(cmd.BoardID.String()){
+	if !uc.repo.CheckBoard(cmd.BoardID.String(), ctx) {
 		return nil, fmt.Errorf("%w: %v", ErrBoardIsNotExists, err)
 	}
 
