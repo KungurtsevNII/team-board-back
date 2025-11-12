@@ -1,10 +1,8 @@
 package main
 
 import (
-	"bytes"
 	_ "embed"
 	"fmt"
-	"io"
 	_ "io/fs"
 	"net/http"
 	"strconv"
@@ -14,11 +12,12 @@ import (
 
 	"github.com/KungurtsevNII/team-board-back/src/config"
 	"github.com/KungurtsevNII/team-board-back/src/handlers"
+	"github.com/KungurtsevNII/team-board-back/src/middlewares"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	swaggerFiles "github.com/swaggo/files"
-    ginSwagger "github.com/swaggo/gin-swagger"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 //go:embed openapi.yaml
@@ -45,7 +44,7 @@ func initAndStartHTTPServer(
 	httpErrCh := make(chan error)
 
 	router := gin.Default()
-	router.Use(RequestLogger()) //Логирование запросов до основной ручки
+	router.Use(middlewares.RequestLogger()) //Логирование запросов до основной ручки
 
 	//Это нужно для того чтобы фронт мог достучаться, пока AllowOrigins: []string{"*"}, но потом это нужно поменять на хост фронта
 	//TODO: Поменять AllowOrigins: []string{"*"}, на хост фронта
@@ -102,32 +101,4 @@ func initAndStartHTTPServer(
 	}()
 
 	return s, httpErrCh
-}
-
-
-func RequestLogger() gin.HandlerFunc {
-    return func(c *gin.Context) {
-		log := slog.Default()
-        body, _ := io.ReadAll(c.Request.Body)
-        c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
-
-        headers := c.Request.Header
-
-        query := c.Request.URL.Query()
-
-        pathParams := make(map[string]string)
-        for _, p := range c.Params {
-            pathParams[p.Key] = p.Value
-        }
-
-        log.Info(fmt.Sprintf("%s %s",c.Request.Method, c.Request.URL.Path),
-            "headers", headers,
-            "query", query,
-            "params", pathParams,
-            "path", c.Request.URL.Path,
-            "body", string(body),
-        )
-
-        c.Next()
-    }
 }

@@ -37,7 +37,7 @@ type Repo interface {
 
 func (uc *UC) Handle(ctx context.Context, cmd CreateColumnCommand) (column *domain.Column, err error) {
 	if !uc.repo.CheckBoard(cmd.BoardID.String()){
-		return nil, fmt.Errorf("%w: %v", ErrBoardIsNotExistsErr, err)
+		return nil, fmt.Errorf("%w: %v", ErrBoardIsNotExists, err)
 	}
 
 	orderNum, err := uc.repo.GetLastOrderNumColumn(ctx, cmd.BoardID)
@@ -45,7 +45,7 @@ func (uc *UC) Handle(ctx context.Context, cmd CreateColumnCommand) (column *doma
 		if errors.Is(err, pgx.ErrNoRows) {
 			orderNum = 0
 		}else{
-			return nil, fmt.Errorf("%w: %v", ErrGetLastOrderNumErr, err)
+			return nil, fmt.Errorf("%w: %v", ErrGetLastOrderNumUnknown, err)
 		}
 	}else{
 		orderNum++
@@ -58,7 +58,7 @@ func (uc *UC) Handle(ctx context.Context, cmd CreateColumnCommand) (column *doma
 
 	err = uc.repo.CreateColumn(ctx, column)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrCreateColumnErr, err)
+		return nil, fmt.Errorf("%w: %v", ErrCreateColumnUnknown, err)
 	}
 
 	return column, nil

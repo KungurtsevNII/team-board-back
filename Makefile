@@ -21,7 +21,6 @@ help:
 	@echo "  make build-flags    				 — собрать бинарник with flags"
 	@echo "  make run           				 — запустить приложение"
 	@echo "  make run-dev       				 — запустить приложение в режиме разработки"
-	@echo "  make run-docs      				 — запуск приложения с генерацией документации"
 	@echo "  make test           				 — запустить unit-тесты"
 	@echo "  make deps          				 — обновить зависимости (go mod tidy && go mod vendor)"
 	@echo "  make clean-build   				 — очистить билды"
@@ -53,14 +52,6 @@ build-flags:
 run:
 	@echo "Запуск приложения..."
 	go run ./cmd/$(APP_NAME)/init.go ./cmd/$(APP_NAME)/main.go
-
-# Запуск приложения с генерацией документации (оба файла)
-.PHONY: run-docs
-run-docs:
-	@echo "Запуск приложения с документацией..."
-	oapi-codegen -package api -generate types,gin -o src/api/generated.go cmd/teamboard/openapi.yaml
-	go run ./cmd/$(APP_NAME)/init.go ./cmd/$(APP_NAME)/main.go
-
 
 # Запуск приложения (в режиме разработки)
 .PHONY: run-dev

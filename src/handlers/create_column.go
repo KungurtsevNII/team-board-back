@@ -78,14 +78,18 @@ func (h *HttpHandler) CreateColumn(c *gin.Context) {
 			slog.String("name", cmd.Name))
 		
 		switch {
-		case errors.Is(err, createcolumn.ErrBoardIsNotExistsErr):
+		case errors.Is(err, createcolumn.ErrBoardIsNotExists):
 			NewErrorResponse(c, http.StatusNotFound, "board not found")
-		case errors.Is(err, createcolumn.ErrGetLastOrderNumErr):
+		case errors.Is(err, createcolumn.ErrGetLastOrderNumUnknown):
 			NewErrorResponse(c, http.StatusInternalServerError, "failed to process column order")
 		case errors.Is(err, createcolumn.ErrValidationFailed):
 			NewErrorResponse(c, http.StatusBadRequest, "validation failed")
-		case errors.Is(err, createcolumn.ErrCreateColumnErr):
+		case errors.Is(err, createcolumn.ErrCreateColumnUnknown):
 			NewErrorResponse(c, http.StatusInternalServerError, "failed to create column")
+		case errors.Is(err, context.Canceled):
+			NewErrorResponse(c, http.StatusRequestTimeout, "request canceled")
+		case errors.Is(err, context.DeadlineExceeded):
+			NewErrorResponse(c, http.StatusServiceUnavailable, "request timeout")
 		default:
 			NewErrorResponse(c, http.StatusInternalServerError, "internal server error")
 		}
