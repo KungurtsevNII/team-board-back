@@ -21,6 +21,7 @@ help:
 	@echo "  make build-flags    				 — собрать бинарник with flags"
 	@echo "  make run           				 — запустить приложение"
 	@echo "  make run-dev       				 — запустить приложение в режиме разработки"
+	@echo "  make run-docs      				 — запуск приложения с генерацией документации"
 	@echo "  make test           				 — запустить unit-тесты"
 	@echo "  make deps          				 — обновить зависимости (go mod tidy && go mod vendor)"
 	@echo "  make clean-build   				 — очистить билды"
@@ -31,6 +32,7 @@ help:
 	@echo "  make docker-run   				 — запуск в контейнера (c беком)"
 	@echo "  make docker-dev-run  				 — запуск в контейнера локальной разработки (без бека)"
 	@echo "  make migrate-create {имя файла}     		 — создание новой миграции (up && down) в папке migrate"
+	@echo "  make generate-docs    			 — инициализация OpenApi документации"
 
 # Сборка бинарника
 .PHONY: build
@@ -50,6 +52,13 @@ build-flags:
 .PHONY: run
 run:
 	@echo "Запуск приложения..."
+	go run ./cmd/$(APP_NAME)/init.go ./cmd/$(APP_NAME)/main.go
+
+# Запуск приложения с генерацией документации (оба файла)
+.PHONY: run-docs
+run-docs:
+	@echo "Запуск приложения с документацией..."
+	oapi-codegen -package api -generate types,gin -o src/api/generated.go cmd/teamboard/openapi.yaml
 	go run ./cmd/$(APP_NAME)/init.go ./cmd/$(APP_NAME)/main.go
 
 
@@ -134,3 +143,10 @@ docker-run:
 docker-dev-run:
 	@echo "Запуск в контейнера локальной разработки (без бека)..."
 	docker-compose -f docker-compose.dev.yaml up --build -d
+
+# Генерация документации Swagger/OpenApi
+# предварительно: go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest 
+.PHONY: generate-docs
+generate-docs:
+	@echo "Инициализация OpenApi документации..."
+	oapi-codegen -package api -generate types,gin -o src/api/generated.go cmd/teamboard/openapi.yaml

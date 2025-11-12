@@ -2,8 +2,10 @@ package main
 
 import (
 	"bytes"
+	_ "embed"
 	"fmt"
 	"io"
+	_ "io/fs"
 	"net/http"
 	"strconv"
 	"time"
@@ -14,7 +16,13 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/handlers"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+
+	swaggerFiles "github.com/swaggo/files"
+    ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+//go:embed openapi.yaml
+var openAPISpec []byte
 
 const (
 	mainPath = "/api"
@@ -50,10 +58,14 @@ func initAndStartHTTPServer(
 		MaxAge:           12 * time.Hour,                                               // Время кэширования preflight-запросов
 	}))
 
-	//TODO: Добавить сваггер
-	// Будет тут будет запуск сваггера
-	// docs.SwaggerInfo.BasePath = mainPath
-	// routerGroup.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+	//Загрузка swagger
+	router.GET("/openapi.yaml", func(c *gin.Context) {
+        c.Data(http.StatusOK, "application/yaml", openAPISpec)
+    })
+    router.GET("/docs/*any", ginSwagger.WrapHandler(
+        swaggerFiles.Handler,
+        ginSwagger.URL("/openapi.yaml"),
+    ))
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.HttpConfig.Port),
@@ -81,7 +93,7 @@ func initAndStartHTTPServer(
 
 	log.Info("http server is running", slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
 		slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
-		slog.String("swagger", fmt.Sprintf("http://localhost:%d/swagger/index.html", cfg.HttpConfig.Port)))
+		slog.String("swagger", fmt.Sprintf("http://localhost:%d/docs/index.html", cfg.HttpConfig.Port)))
 
 	go func() {
 		if err := s.router.Run(":" + strconv.Itoa(cfg.HttpConfig.Port)); err != nil {
