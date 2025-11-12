@@ -11,8 +11,5 @@ var InvalidShortNameErr = errors.New("short name must be 2–10 characters and c
 // имя не может быть пустым
 var EmptyNameErr = errors.New("name cannot be empty")
 
-// короткое имя не может быть пустым
-var EmptyShortNameErr = errors.New("short name cannot be empty")
-
 // доска уже существует
 var BoardIsExistsErr = errors.New("board with this shortname already exists")

@@ -11,24 +11,22 @@ var (
 	ShortNameRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]{2,10}$`)
 )
 
-func NewCreateBoardCommand(name string, shortName string) (*CreateBoardCommand, error) {
-
-	//validation
+func NewCreateBoardCommand(name string, shortName string) (CreateBoardCommand, error) {
 	if name == "" {
-		return nil, EmptyNameErr
+		return CreateBoardCommand{}, EmptyNameErr
 	}
 	if len(name) > 100 {
-		return nil, InvalidNameErr
+		return CreateBoardCommand{}, InvalidNameErr
 	}
 
 	if shortName == "" {
-		return nil, EmptyShortNameErr
+		return CreateBoardCommand{}, InvalidShortNameErr
 	}
 	if !ShortNameRegex.MatchString(shortName) {
-		return nil, InvalidShortNameErr
+		return CreateBoardCommand{}, InvalidShortNameErr
 	}
 
-	return &CreateBoardCommand{
+	return CreateBoardCommand{
 		Name:      name,
 		ShortName: shortName,
 	}, nil

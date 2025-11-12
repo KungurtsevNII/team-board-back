@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"context"
+	"errors"
 	"net/http"
 
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createboard"
@@ -10,7 +12,7 @@ import (
 type (
 	CreateBoardReqest struct {
 		Name      string `json:"name"`
-		ShortName string `json:"shrort_name"`
+		ShortName string `json:"short_name"`
 	}
 
 	CreateBoardResponce struct {
@@ -18,7 +20,7 @@ type (
 	}
 
 	CreateBoardUseCase interface {
-		Handle(cmd createboard.CreateBoardCommand) (string, error)
+		Handle(cmd createboard.CreateBoardCommand, ctx context.Context) (string, error)
 	}
 )
 
@@ -33,9 +35,21 @@ func (h *HttpHandler) CreateBoard(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	boardID, err := h.createBoardUC.Handle(*cmd)
+
+	boardID, err := h.createBoardUC.Handle(cmd, c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		switch {
+		case errors.Is(err, createboard.InvalidNameErr):
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		case errors.Is(err, createboard.InvalidShortNameErr):
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		case errors.Is(err, createboard.EmptyNameErr):
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		case errors.Is(err, createboard.BoardIsExistsErr):
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		}
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
