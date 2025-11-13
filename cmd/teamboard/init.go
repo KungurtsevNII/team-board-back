@@ -18,10 +18,8 @@ import (
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/KungurtsevNII/team-board-back/docs"
 )
-
-//go:embed openapi.yaml
-var openAPISpec []byte
 
 const (
 	mainPath = "/api"
@@ -34,6 +32,13 @@ type HttpServer struct {
 	cfg      *config.Config
 }
 
+// @title           Team Board API
+// @version         1.0
+// @description     API для проекта Team Board
+// @host      localhost:8080
+// @BasePath  /api
+// @securityDefinitions.basic  BasicAuth
+// @externalDocs.description  OpenAPI
 func initAndStartHTTPServer(
 	cfg *config.Config,
 	handlers *handlers.HttpHandler,
@@ -58,13 +63,8 @@ func initAndStartHTTPServer(
 	}))
 
 	//Загрузка swagger
-	router.GET("/openapi.yaml", func(c *gin.Context) {
-        c.Data(http.StatusOK, "application/yaml", openAPISpec)
-    })
-    router.GET("/docs/*any", ginSwagger.WrapHandler(
-        swaggerFiles.Handler,
-        ginSwagger.URL("/openapi.yaml"),
-    ))
+	docs.SwaggerInfo.BasePath = mainPath
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.HttpConfig.Port),
@@ -87,12 +87,12 @@ func initAndStartHTTPServer(
 	v1Group := mainGroup.Group("/v1")
 	{
 		v1Group.POST("/boards/:board_id/columns", handlers.CreateColumn)
-		v1Group.POST("/board", handlers.CreateBoard)
+		v1Group.POST("/boards", handlers.CreateBoard)
 	}
 
 	log.Info("http server is running", slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
 		slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
-		slog.String("swagger", fmt.Sprintf("http://localhost:%d/docs/index.html", cfg.HttpConfig.Port)))
+		slog.String("swagger", fmt.Sprintf("http://localhost:%d/swagger/index.html", cfg.HttpConfig.Port)))
 
 	go func() {
 		if err := s.router.Run(":" + strconv.Itoa(cfg.HttpConfig.Port)); err != nil {

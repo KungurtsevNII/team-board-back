@@ -38,6 +38,16 @@ type (
 	}
 )
 
+// @Summary Создание новой колонки
+// @Schemes
+// @Tags Columns
+// @Accept json
+// @Produce json
+// @Param board_id path string true "ID доски"
+// @Param createColumnRequest body CreateColumnRequest true "request на создание колонки"
+// @Success 201 {object}  CreateColumnResponse
+// @Failure     400,404,408,500,503  {object}  ErrorResponse
+// @Router /v1/boards/{board_id}/columns [POST]
 func (h *HttpHandler) CreateColumn(c *gin.Context) {
 	const op = "handlers.CreateColumn"
 	log := slog.Default()

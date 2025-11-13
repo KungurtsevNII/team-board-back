@@ -7,6 +7,7 @@ import (
 
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createboard"
 	"github.com/gin-gonic/gin"
+	"log/slog"
 )
 
 type (
@@ -24,15 +25,28 @@ type (
 	}
 )
 
+// @Summary Создание новой доски
+// @Schemes
+// @Tags Boards
+// @Accept json
+// @Produce json
+// @Param createBoardRequest body CreateBoardReqest true "request на создание доски"
+// @Success 201 {object}  CreateBoardResponce
+// @Failure     400,408,409,500,503  {object}  ErrorResponse
+// @Router /v1/boards [POST]
 func (h *HttpHandler) CreateBoard(c *gin.Context) {
+	const op = "handlers.CreateBoard"
+	log := slog.Default()
+	log.With("op", op)
+
 	var req CreateBoardReqest
 	if err := c.BindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		NewErrorResponse(c, http.StatusBadRequest, "invalid request")
 		return
 	}
 	cmd, err := createboard.NewCreateBoardCommand(req.Name, req.ShortName)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		NewErrorResponse(c, http.StatusBadRequest, "failed to create command")
 		return
 	}
 
@@ -40,19 +54,22 @@ func (h *HttpHandler) CreateBoard(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, createboard.InvalidNameErr):
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			NewErrorResponse(c, http.StatusBadRequest, createboard.InvalidNameErr.Error())
 		case errors.Is(err, createboard.InvalidShortNameErr):
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			NewErrorResponse(c, http.StatusBadRequest, createboard.InvalidNameErr.Error())
 		case errors.Is(err, createboard.EmptyNameErr):
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			NewErrorResponse(c, http.StatusBadRequest, createboard.EmptyNameErr.Error())
 		case errors.Is(err, createboard.BoardIsExistsErr):
-			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			NewErrorResponse(c, http.StatusConflict, createboard.BoardIsExistsErr.Error())
+		case errors.Is(err, context.Canceled):
+			NewErrorResponse(c, http.StatusRequestTimeout, "request canceled")
+		case errors.Is(err, context.DeadlineExceeded):
+			NewErrorResponse(c, http.StatusServiceUnavailable, "request timeout")
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			NewErrorResponse(c, http.StatusInternalServerError, "internal server error")
 		}
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"id": boardID,
-	})
+
+	c.JSON(http.StatusCreated, CreateBoardResponce{ID: boardID})
 }

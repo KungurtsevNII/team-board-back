@@ -1,0 +1,148 @@
+basePath: /api
+definitions:
+  handlers.CreateBoardReqest:
+    properties:
+      name:
+        type: string
+      short_name:
+        type: string
+    type: object
+  handlers.CreateBoardResponce:
+    properties:
+      id:
+        type: string
+    type: object
+  handlers.CreateColumnRequest:
+    properties:
+      name:
+        type: string
+    type: object
+  handlers.CreateColumnResponse:
+    properties:
+      board_id:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      order_num:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  handlers.Error:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  handlers.ErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/handlers.Error'
+    type: object
+externalDocs:
+  description: OpenAPI
+host: localhost:8080
+info:
+  contact: {}
+  description: API для проекта Team Board
+  title: Team Board API
+  version: "1.0"
+paths:
+  /v1/boards:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: request на создание доски
+        in: body
+        name: createBoardRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateBoardReqest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.CreateBoardResponce'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "408":
+          description: Request Timeout
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Создание новой доски
+      tags:
+      - Boards
+  /v1/boards/{board_id}/columns:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID доски
+        in: path
+        name: board_id
+        required: true
+        type: string
+      - description: request на создание колонки
+        in: body
+        name: createColumnRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateColumnRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.CreateColumnResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "408":
+          description: Request Timeout
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Создание новой колонки
+      tags:
+      - Columns
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"
