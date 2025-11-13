@@ -29,6 +29,7 @@ help:
 	@echo "  make lint-fix      				 — запустить линтер с автоисправлением"
 	@echo "  make pre-commit    				 — подготовка к коммиту (deps + lint + test)"
 	@echo "  make swag           				 — генерация OpenApi документации"
+	@echo "  make install-swag           			 — скачивание swaggo"
 	@echo "  make docker-run   				 — запуск в контейнера (c беком)"
 	@echo "  make docker-dev-run  				 — запуск в контейнера локальной разработки (без бека)"
 	@echo "  make migrate-create {имя файла}     		 — создание новой миграции (up && down) в папке migrate"
@@ -138,7 +139,13 @@ docker-dev-run:
 
 # Генерация документации Swagger
 .PHONY: swag
-swag:
+swag: install-swag
 	@echo "Инициализация OpenApi документации..."
-	go install github.com/swaggo/swag/cmd/swag@latest
 	swag init -g ./cmd/teamboard/init.go
+
+# Скачивание Swagger
+.PHONY: install-swag
+install-swag:
+	@echo "Скачивание swago..."
+	go install github.com/swaggo/swag/cmd/swag@latest
+
