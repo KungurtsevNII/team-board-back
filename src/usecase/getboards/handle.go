@@ -9,7 +9,7 @@ import (
 )
 
 type Repo interface {
-	GetBoards(user_id uuid.UUID, ctx context.Context) (*[]domain.Board, error)
+	GetBoards(user_id uuid.UUID, ctx context.Context) ([]domain.Board, error)
 }
 
 type UC struct {
@@ -24,7 +24,7 @@ func NewUC(repo Repo) *UC {
 
 // как лучше будет , напрямую слайс отдавать или через указатель?
 // как будто хочется через указатель , чтобы не забивать память и возвращать просто nil
-func (uc *UC) Handle(cmd GetBoardsCommand, ctx context.Context) (*[]domain.Board, error) {
+func (uc *UC) Handle(cmd GetBoardsCommand, ctx context.Context) ([]domain.Board, error) {
 	const op = "getboards.Handle"
 
 	boards, err := uc.repo.GetBoards(cmd.UserID, ctx)

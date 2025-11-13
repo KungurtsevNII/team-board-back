@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (r Repository) GetBoards(user_id uuid.UUID, ctx context.Context) (*[]domain.Board, error) {
+func (r Repository) GetBoards(user_id uuid.UUID, ctx context.Context) ([]domain.Board, error) {
 	//TODO проверять user_id и подставлять его как параметр в запрос
 	_, err := uuid.Parse(user_id.String())
 	if err != nil {
@@ -41,7 +41,7 @@ func (r Repository) GetBoards(user_id uuid.UUID, ctx context.Context) (*[]domain
 		}
 		boards = append(boards, board)
 	}
-	return &boards, nil
+	return boards, nil
 }
 
 var ErrInvalidUserID = errors.New("invalid user id")
