@@ -28,6 +28,7 @@ help:
 	@echo "  make lint           				 — запустить линтер"
 	@echo "  make lint-fix      				 — запустить линтер с автоисправлением"
 	@echo "  make pre-commit    				 — подготовка к коммиту (deps + lint + test)"
+	@echo "  make swag           				 — генерация OpenApi документации"
 	@echo "  make docker-run   				 — запуск в контейнера (c беком)"
 	@echo "  make docker-dev-run  				 — запуск в контейнера локальной разработки (без бека)"
 	@echo "  make migrate-create {имя файла}     		 — создание новой миграции (up && down) в папке migrate"
@@ -135,9 +136,9 @@ docker-dev-run:
 	@echo "Запуск в контейнера локальной разработки (без бека)..."
 	docker-compose -f docker-compose.dev.yaml up --build -d
 
-# Генерация документации Swagger/OpenApi
-# предварительно: go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest 
-.PHONY: generate-docs
-generate-docs:
+# Генерация документации Swagger
+.PHONY: swag
+swag:
 	@echo "Инициализация OpenApi документации..."
-	oapi-codegen -package api -generate types,gin -o src/api/generated.go cmd/teamboard/openapi.yaml
+	go install github.com/swaggo/swag/cmd/swag@latest
+	swag init -g ./cmd/teamboard/init.go
