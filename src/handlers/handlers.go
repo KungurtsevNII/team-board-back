@@ -15,18 +15,21 @@ type HttpHandler struct {
 	cfg            *config.HTTPConfig
 	createColumnUC CreateColumnUseCase
 	createBoardUC  CreateBoardUseCase
+	getBoardsUC    GetBoardsUseCase
 }
 
 func NewHttpHandler(
 	cfg *config.HTTPConfig,
 	columnUC CreateColumnUseCase,
 	createBoardUC CreateBoardUseCase,
+	getboardsUC GetBoardsUseCase,
 
 ) *HttpHandler {
 	return &HttpHandler{
 		cfg:            cfg,
 		createColumnUC: columnUC,
 		createBoardUC:  createBoardUC,
+		getBoardsUC:    getboardsUC,
 	}
 }
 
@@ -34,15 +37,15 @@ type ErrorResponse struct {
 	Err Error `json:"error"`
 }
 
-type Error struct{
-	Code int `json:"code"`
+type Error struct {
+	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
 
-func NewErrorResponse(c *gin.Context,statusCode int, message string) {
+func NewErrorResponse(c *gin.Context, statusCode int, message string) {
 	err := ErrorResponse{
-		Err : Error{
-			Code: statusCode,
+		Err: Error{
+			Code:    statusCode,
 			Message: message,
 		},
 	}
