@@ -25,7 +25,7 @@ func (uc *UC) Handle(cmd GetBoardCommand) (domain.Board, error) {
 
 	board, err := uc.repo.GetBoard(cmd.ID)
 	if err != nil {
-		return domain.Board{}, fmt.Errorf("%s: %v", op, err)
+		return domain.Board{}, fmt.Errorf("%s: %w", op, err)
 	}
 	return board, nil
 }

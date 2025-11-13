@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/KungurtsevNII/team-board-back/src/domain"
@@ -15,8 +16,9 @@ type (
 	}
 
 	GetBoardResponse struct {
-		Name      string `json:"name"`
-		ShortName string `json:"short_name"`
+		Name      string          `json:"name"`
+		ShortName string          `json:"short_name"`
+		Columns   []domain.Column `json:"columns"`
 	}
 
 	GetBoardUseCase interface {
@@ -26,6 +28,9 @@ type (
 
 func (h *HttpHandler) GetBoard(c *gin.Context) {
 	const op = "handlers.GetBoard"
+	log := slog.Default()
+	log.With("op", op, "method", c.Request.Method)
+	log.Info(c.Request.URL.Path)
 
 	id := c.Param("id")
 	cmd, err := getboard.NewGetBoardCommand(id)
@@ -38,6 +43,14 @@ func (h *HttpHandler) GetBoard(c *gin.Context) {
 	dmn, err := h.getBoardUC.Handle(cmd)
 	if err != nil {
 		switch {
+		case errors.Is(err, domain.ErrInvalidID):
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+		case errors.Is(err, domain.ErrBoardNotFound):
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": err.Error(),
+			})
 		case errors.Is(err, getboard.BoardIsNotExistsErr):
 			c.JSON(http.StatusConflict, gin.H{
 				"error": err.Error(),
@@ -48,6 +61,7 @@ func (h *HttpHandler) GetBoard(c *gin.Context) {
 	resp := GetBoardResponse{
 		Name:      dmn.Name,
 		ShortName: dmn.ShortName,
+		Columns:   dmn.Columns,
 	}
 
 	c.JSON(http.StatusOK, gin.H{

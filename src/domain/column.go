@@ -8,9 +8,11 @@ type Column struct {
 	ID        string
 	BoardID   string
 	Name      string
+	OrderNum  int
 	CreatedAt time.Time
 	DeletedAt *time.Time
 	UpdatedAt time.Time
+	Tasks     []any //TODO
 }
 
 func NewColumn(boardID string, name string) (*Column, error) {

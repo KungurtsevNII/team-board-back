@@ -30,12 +30,12 @@ func (uc *UC) Handle(cmd CreateBoardCommand) (string, error) {
 
 	board, err := domain.NewBoard(cmd.Name, cmd.ShortName)
 	if err != nil {
-		return "", fmt.Errorf("%s: %v", op, err)
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	id, err := uc.repo.CreateBoard(*board)
 	if err != nil {
-		return "", fmt.Errorf("%s: %v", op, err)
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	return id, nil

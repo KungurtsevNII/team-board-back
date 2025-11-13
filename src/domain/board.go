@@ -17,6 +17,7 @@ type Board struct {
 	CreatedAt time.Time
 	DeletedAt *time.Time
 	UpdatedAt time.Time
+	Columns   []Column
 }
 
 var (
@@ -24,7 +25,7 @@ var (
 )
 
 func NewBoard(name string, shortName string) (*Board, error) {
-	//тут не вижу смысла делать валидацию , т.к. она уже есть в dto
+	//todo validation
 	now := time.Now()
 
 	return &Board{

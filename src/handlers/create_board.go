@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createboard"
@@ -24,6 +25,10 @@ type (
 
 func (h *HttpHandler) CreateBoard(c *gin.Context) {
 	const op = "handlers.CreateBoard"
+	log := slog.Default()
+	log.With("op", op, "method", c.Request.Method)
+	log.Info(c.Request.URL.Path)
+
 	var req CreateBoardReqest
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
