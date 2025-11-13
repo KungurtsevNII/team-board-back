@@ -22,8 +22,6 @@ func NewUC(repo Repo) *UC {
 	}
 }
 
-// как лучше будет , напрямую слайс отдавать или через указатель?
-// как будто хочется через указатель , чтобы не забивать память и возвращать просто nil
 func (uc *UC) Handle(cmd GetBoardsCommand, ctx context.Context) ([]domain.Board, error) {
 	const op = "getboards.Handle"
 
