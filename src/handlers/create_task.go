@@ -15,22 +15,6 @@ import (
 )
 
 type (
-
-	/*
-
-		export interface Checklist {
-			title: string;
-			items: ChecklistItem[];
-		}
-
-		export interface ChecklistItem {
-			title: string;
-			completed: boolean;
-		}
-
-
-	*/
-
 	CreateTaskRequest struct {
 		ColumnID    string                   `json:"column_id"`
 		BoardID     string                   `json:"board_id"`
