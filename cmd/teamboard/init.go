@@ -16,9 +16,9 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
+	"github.com/KungurtsevNII/team-board-back/docs"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/KungurtsevNII/team-board-back/docs"
 )
 
 const (
@@ -88,6 +88,7 @@ func initAndStartHTTPServer(
 	{
 		v1Group.POST("/boards/:board_id/columns", handlers.CreateColumn)
 		v1Group.POST("/boards", handlers.CreateBoard)
+		v1Group.GET("/boards", handlers.GetBoards)
 	}
 
 	log.Info("http server is running", slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
