@@ -13,17 +13,17 @@ var (
 
 func NewCreateBoardCommand(name string, shortName string) (CreateBoardCommand, error) {
 	if name == "" {
-		return CreateBoardCommand{}, EmptyNameErr
+		return CreateBoardCommand{}, ErrEmptyName
 	}
 	if len(name) > 100 {
-		return CreateBoardCommand{}, InvalidNameErr
+		return CreateBoardCommand{}, ErrInvalidName
 	}
 
 	if shortName == "" {
-		return CreateBoardCommand{}, InvalidShortNameErr
+		return CreateBoardCommand{}, ErrEmptyShortName
 	}
 	if !ShortNameRegex.MatchString(shortName) {
-		return CreateBoardCommand{}, InvalidShortNameErr
+		return CreateBoardCommand{}, ErrInvalidShortName
 	}
 
 	return CreateBoardCommand{

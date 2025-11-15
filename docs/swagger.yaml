@@ -9,7 +9,22 @@ definitions:
     type: object
   handlers.CreateBoardResponce:
     properties:
+      column:
+        allOf:
+        - $ref: '#/definitions/handlers.CreateColumnResponse'
+        description: CreateColumnResponse лежит в handle/create_column.go, я не знаю,
+          стоит ли выносить куда-то
+      created_at:
+        type: string
+      deleted_at:
+        type: string
       id:
+        type: string
+      name:
+        type: string
+      short_name:
+        type: string
+      updated_at:
         type: string
     type: object
   handlers.CreateColumnRequest:
