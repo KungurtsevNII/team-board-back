@@ -4,10 +4,18 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"time"
 
-	"github.com/KungurtsevNII/team-board-back/src/usecase/createboard"
-	"github.com/gin-gonic/gin"
 	"log/slog"
+
+	"github.com/KungurtsevNII/team-board-back/src/domain"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/createboard"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/createcolumn"
+	"github.com/gin-gonic/gin"
+)
+
+const (
+	nameOfFirstColumn = "TODO"
 )
 
 type (
@@ -17,11 +25,17 @@ type (
 	}
 
 	CreateBoardResponce struct {
-		ID string `json:"id"`
+		ID        string               `json:"id"`
+		Name      string               `json:"name"`
+		ShortName string               `json:"short_name"`
+		Ccr       CreateColumnResponse `json:"column"` //CreateColumnResponse лежит в handle/create_column.go, я не знаю, стоит ли выносить куда-то
+		CreatedAt time.Time            `json:"created_at"`
+		UpdatedAt time.Time            `json:"updated_at"`
+		DeletedAt *time.Time           `json:"deleted_at"`
 	}
 
 	CreateBoardUseCase interface {
-		Handle(cmd createboard.CreateBoardCommand, ctx context.Context) (string, error)
+		Handle(cmd createboard.CreateBoardCommand, ctx context.Context) (*domain.Board, error)
 	}
 )
 
@@ -44,23 +58,39 @@ func (h *HttpHandler) CreateBoard(c *gin.Context) {
 		NewErrorResponse(c, http.StatusBadRequest, "invalid request")
 		return
 	}
-	cmd, err := createboard.NewCreateBoardCommand(req.Name, req.ShortName)
+
+	bcmd, err := createboard.NewCreateBoardCommand(req.Name, req.ShortName)
 	if err != nil {
-		NewErrorResponse(c, http.StatusBadRequest, "failed to create command")
+		log.Warn("failed to create command",
+			slog.String("err", err.Error()),
+			slog.Any("request", req))
+		switch {
+		case errors.Is(err, createboard.ErrEmptyName):
+			NewErrorResponse(c, http.StatusBadRequest, "empty name")
+		case errors.Is(err, createboard.ErrInvalidName):
+			NewErrorResponse(c, http.StatusBadRequest, "invalid name")
+		case errors.Is(err, createboard.ErrEmptyShortName):
+			NewErrorResponse(c, http.StatusBadRequest, "empty short name")
+		case errors.Is(err, createboard.ErrInvalidShortName):
+			NewErrorResponse(c, http.StatusBadRequest, "invalid short name")
+		default:
+			NewErrorResponse(c, http.StatusInternalServerError, "internal server error")
+		}
 		return
 	}
 
-	boardID, err := h.createBoardUC.Handle(cmd, c.Request.Context())
+	board, err := h.createBoardUC.Handle(bcmd, c.Request.Context())
 	if err != nil {
+		log.Warn("failed to create board",
+			slog.String("err", err.Error()),
+			slog.Any("cmd", bcmd))
 		switch {
-		case errors.Is(err, createboard.InvalidNameErr):
-			NewErrorResponse(c, http.StatusBadRequest, createboard.InvalidNameErr.Error())
-		case errors.Is(err, createboard.InvalidShortNameErr):
-			NewErrorResponse(c, http.StatusBadRequest, createboard.InvalidNameErr.Error())
-		case errors.Is(err, createboard.EmptyNameErr):
-			NewErrorResponse(c, http.StatusBadRequest, createboard.EmptyNameErr.Error())
-		case errors.Is(err, createboard.BoardIsExistsErr):
-			NewErrorResponse(c, http.StatusConflict, createboard.BoardIsExistsErr.Error())
+		case errors.Is(err, createboard.ErrValidationFaild):
+			NewErrorResponse(c, http.StatusBadRequest, "validation failed")
+		case errors.Is(err, createboard.ErrBoardIsExists):
+			NewErrorResponse(c, http.StatusBadRequest, "board already exists")
+		case errors.Is(err, createboard.ErrCreateBoardFailed):
+			NewErrorResponse(c, http.StatusInternalServerError, "failed to create board")
 		case errors.Is(err, context.Canceled):
 			NewErrorResponse(c, http.StatusRequestTimeout, "request canceled")
 		case errors.Is(err, context.DeadlineExceeded):
@@ -71,5 +101,67 @@ func (h *HttpHandler) CreateBoard(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, CreateBoardResponce{ID: boardID})
+	ccmd, err := createcolumn.NewCreateColumnCommand(board.ID.String(), nameOfFirstColumn)
+	if err != nil {
+		log.Warn("failed to create command",
+			slog.String("err", err.Error()),
+			slog.String("board_id", board.ID.String()),
+			slog.String("name", req.Name))
+
+		switch {
+		case errors.Is(err, createcolumn.ErrValidationFailed):
+			NewErrorResponse(c, http.StatusBadRequest, "validation failed")
+		case errors.Is(err, createcolumn.ErrInvalidUUID):
+			NewErrorResponse(c, http.StatusBadRequest, "invalid board id")
+		default:
+			NewErrorResponse(c, http.StatusInternalServerError, "internal server error")
+		}
+		return
+	}
+
+	cdm, err := h.createColumnUC.Handle(c, ccmd)
+	if err != nil {
+		log.Error("failed to create column",
+			slog.String("err", err.Error()),
+			slog.String("board_id", ccmd.BoardID.String()),
+			slog.String("name", ccmd.Name))
+
+		switch {
+		case errors.Is(err, createcolumn.ErrBoardIsNotExists):
+			NewErrorResponse(c, http.StatusNotFound, "board not found")
+		case errors.Is(err, createcolumn.ErrGetLastOrderNumUnknown):
+			NewErrorResponse(c, http.StatusInternalServerError, "failed to process column order")
+		case errors.Is(err, createcolumn.ErrValidationFailed):
+			NewErrorResponse(c, http.StatusBadRequest, "validation failed")
+		case errors.Is(err, createcolumn.ErrCreateColumnUnknown):
+			NewErrorResponse(c, http.StatusInternalServerError, "failed to create column")
+		case errors.Is(err, context.Canceled):
+			NewErrorResponse(c, http.StatusRequestTimeout, "request canceled")
+		case errors.Is(err, context.DeadlineExceeded):
+			NewErrorResponse(c, http.StatusServiceUnavailable, "request timeout")
+		default:
+			NewErrorResponse(c, http.StatusInternalServerError, "internal server error")
+		}
+		return
+	}
+
+	resp := CreateBoardResponce{
+		ID:        board.ID.String(),
+		Name:      board.Name,
+		ShortName: board.ShortName,
+		Ccr: CreateColumnResponse{
+			ID:        cdm.ID.String(),
+			BoardID:   cdm.BoardID.String(),
+			Name:      cdm.Name,
+			OrderNum:  cdm.OrderNum,
+			CreatedAt: cdm.CreatedAt,
+			UpdatedAt: cdm.UpdatedAt,
+			DeletedAt: cdm.DeletedAt,
+		},
+		CreatedAt: board.CreatedAt,
+		UpdatedAt: board.UpdatedAt,
+		DeletedAt: board.DeletedAt,
+	}
+
+	c.JSON(http.StatusCreated, resp)
 }

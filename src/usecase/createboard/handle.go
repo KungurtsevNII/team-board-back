@@ -2,8 +2,8 @@ package createboard
 
 import (
 	"context"
-	"fmt"
 	"github.com/KungurtsevNII/team-board-back/src/domain"
+	"github.com/pkg/errors"
 )
 
 type Repo interface {
@@ -21,21 +21,20 @@ func NewUC(repo Repo) *UC {
 	}
 }
 
-func (uc *UC) Handle(cmd CreateBoardCommand, ctx context.Context) (string, error) {
-	const op = "createboard.Handle"
+func (uc *UC) Handle(cmd CreateBoardCommand, ctx context.Context) (*domain.Board, error) {
 	if uc.repo.CheckBoard(cmd.ShortName, ctx) {
-		return "", BoardIsExistsErr
+		return nil, ErrBoardIsExists
 	}
 
 	board, err := domain.NewBoard(cmd.Name, cmd.ShortName)
 	if err != nil {
-		return "", fmt.Errorf("%s: %w", op, err)
+		return nil, errors.Wrap(ErrValidationFaild, err.Error())
 	}
 
 	err = uc.repo.CreateBoard(board, ctx)
 	if err != nil {
-		return "", fmt.Errorf("%s: %w", op, err)
+		return nil, errors.Wrap(ErrCreateBoardFailed, err.Error())
 	}
 
-	return board.ID.String(), nil
+	return &board, nil
 }
