@@ -15,18 +15,21 @@ type HttpHandler struct {
 	cfg            *config.HTTPConfig
 	createColumnUC CreateColumnUseCase
 	createBoardUC  CreateBoardUseCase
+	createTaskUC   CreateTaskUseCase
 }
 
 func NewHttpHandler(
 	cfg *config.HTTPConfig,
-	columnUC CreateColumnUseCase,
+	createColumnUC CreateColumnUseCase,
 	createBoardUC CreateBoardUseCase,
-
+	createTaskUC CreateTaskUseCase,
 ) *HttpHandler {
 	return &HttpHandler{
 		cfg:            cfg,
-		createColumnUC: columnUC,
+		createColumnUC: createColumnUC,
 		createBoardUC:  createBoardUC,
+		createTaskUC:   createTaskUC,
+
 	}
 }
 

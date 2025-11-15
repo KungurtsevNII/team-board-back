@@ -24,8 +24,8 @@ func NewColumn(boardID uuid.UUID, name string, orderNum int64) (*Column, error) 
 		BoardID:   boardID,
 		Name:      name,
 		OrderNum:  orderNum,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
 		DeletedAt: nil,
 	}, nil
 }
