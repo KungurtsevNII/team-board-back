@@ -2,13 +2,13 @@ package createtask
 
 import (
 	"context"
-	"errors"
-	"fmt"
+
 
 	"github.com/KungurtsevNII/team-board-back/src/domain"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	// "github.com/KungurtsevNII/team-board-back/src/repository/postgres"
+	"github.com/pkg/errors"
 )
 
 type UC struct {
@@ -31,10 +31,10 @@ type Repo interface {
 func (uc *UC) Handle(ctx context.Context, cmd CreateTaskCommand) (task *domain.Task, err error) {
 	ex, err := uc.repo.CheckColumnInBoard(ctx, cmd.BoardID, cmd.ColumnID) 
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrCheckColumnInBoardFailed, err)
+		return nil, errors.Wrap(ErrCheckColumnInBoardFailed, err.Error())
 	}
 	if !ex{
-		return nil, fmt.Errorf("%w: %v", ErrColumnOrBoardIsNotExists, err)
+		return nil, ErrColumnOrBoardIsNotExists
 	}
 
 	number, err := uc.repo.GetLastNumberTask(ctx, cmd.BoardID)
@@ -42,7 +42,7 @@ func (uc *UC) Handle(ctx context.Context, cmd CreateTaskCommand) (task *domain.T
 		if errors.Is(err, pgx.ErrNoRows) {
 			number = 0
 		}else{
-			return nil, fmt.Errorf("%w: %v", ErrGetLastNumberFailed, err)
+			return nil, errors.Wrap(ErrGetLastNumberFailed, err.Error())
 		}
 	}else{
 		number++
@@ -58,12 +58,12 @@ func (uc *UC) Handle(ctx context.Context, cmd CreateTaskCommand) (task *domain.T
 		cmd.Checklists,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrValidationFailed, err)
+		return nil, errors.Wrap(ErrValidationFailed, err.Error())
 	}
 
 	err = uc.repo.CreateTask(ctx, task)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrCreateTaskUnknown, err)
+		return nil, errors.Wrap(ErrCreateTaskUnknown, err.Error())
 	}
 
 	return task, nil

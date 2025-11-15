@@ -1,11 +1,10 @@
 package createtask
 
 import (
-	"fmt"
-
 	"encoding/json"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
 type CreateTaskCommand struct {
@@ -28,12 +27,12 @@ func NewCreateTaskCommand(
 
 	bID, err := uuid.Parse(boardID)
 	if err != nil {
-		return CreateTaskCommand{}, fmt.Errorf("%w: %v", ErrInvalidUUID, err)
+		return CreateTaskCommand{}, errors.Wrap(ErrInvalidUUID, err.Error())
 	}
 
 	cID, err := uuid.Parse(columnID)
 	if err != nil {
-		return CreateTaskCommand{}, fmt.Errorf("%w: %v", ErrInvalidUUID, err)
+		return CreateTaskCommand{}, errors.Wrap(ErrInvalidUUID, err.Error())
 	}
 
 	ctc := CreateTaskCommand{
@@ -47,7 +46,7 @@ func NewCreateTaskCommand(
 
 	err = validate.Struct(ctc)
 	if err != nil {
-		return CreateTaskCommand{}, fmt.Errorf("%w: %v", ErrValidationFailed, err)
+		return CreateTaskCommand{}, errors.Wrap(ErrValidationFailed, err.Error())
 	}
 
 	return ctc, nil
