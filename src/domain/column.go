@@ -2,10 +2,12 @@ package domain
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Column struct {
-	ID        string
+	ID        uuid.UUID
 	BoardID   string
 	Name      string
 	OrderNum  int
@@ -19,7 +21,7 @@ func NewColumn(boardID string, name string) (*Column, error) {
 	// todo validation
 
 	return &Column{
-		ID:        "adsasdas",
+		ID:        uuid.New(),
 		BoardID:   boardID,
 		Name:      name,
 		CreatedAt: time.Now(),

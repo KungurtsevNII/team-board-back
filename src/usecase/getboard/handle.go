@@ -1,13 +1,13 @@
 package getboard
 
 import (
-	"fmt"
-
+	"context"
 	"github.com/KungurtsevNII/team-board-back/src/domain"
+	"github.com/pkg/errors"
 )
 
 type Repo interface {
-	GetBoard(ID string) (domain.Board, error)
+	GetBoard(ctx context.Context, ID string) (domain.Board, error)
 }
 
 type UC struct {
@@ -20,12 +20,12 @@ func NewUC(repo Repo) *UC {
 	}
 }
 
-func (uc *UC) Handle(cmd GetBoardCommand) (domain.Board, error) {
+func (uc *UC) Handle(ctx context.Context, cmd GetBoardCommand) (domain.Board, error) {
 	const op = "getboard.Handle"
 
-	board, err := uc.repo.GetBoard(cmd.ID)
+	board, err := uc.repo.GetBoard(ctx, cmd.ID)
 	if err != nil {
-		return domain.Board{}, fmt.Errorf("%s: %w", op, err)
+		return domain.Board{}, errors.Wrap(err, op)
 	}
 	return board, nil
 }

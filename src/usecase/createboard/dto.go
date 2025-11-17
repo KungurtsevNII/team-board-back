@@ -15,17 +15,17 @@ func NewCreateBoardCommand(name string, shortName string) (*CreateBoardCommand, 
 
 	//validation
 	if name == "" {
-		return nil, EmptyNameErr
+		return nil, ErrEmptyName
 	}
 	if len(name) > 100 {
-		return nil, InvalidNameErr
+		return nil, ErrInvalidName
 	}
 
 	if shortName == "" {
-		return nil, EmptyShortNameErr
+		return nil, ErrEmptyShortName
 	}
 	if !ShortNameRegex.MatchString(shortName) {
-		return nil, InvalidShortNameErr
+		return nil, ErrInvalidShortName
 	}
 
 	return &CreateBoardCommand{

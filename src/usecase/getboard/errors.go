@@ -2,4 +2,4 @@ package getboard
 
 import "errors"
 
-var BoardIsNotExistsErr = errors.New("board is not exists")
+var ErrBoardIsNotExists = errors.New("board is not exists")

@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r Repository) GetBoard(ID string, ctx context.Context) (domain.Board, error) {
+func (r Repository) GetBoard(ctx context.Context, ID string) (domain.Board, error) {
 	uid, err := uuid.Parse(ID)
 	if err != nil {
 		return domain.Board{}, domain.ErrInvalidID

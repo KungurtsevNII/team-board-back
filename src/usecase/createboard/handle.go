@@ -25,7 +25,7 @@ func (uc *UC) Handle(cmd CreateBoardCommand) (string, error) {
 
 	const op = "createboard.Handle"
 	if uc.repo.CheckBoard(cmd.ShortName) {
-		return "", BoardIsExistsErr
+		return "", ErrBoardIsExists
 	}
 
 	board, err := domain.NewBoard(cmd.Name, cmd.ShortName)
