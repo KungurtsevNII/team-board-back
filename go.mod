@@ -4,8 +4,10 @@ go 1.25.1
 
 require (
 	github.com/doug-martin/goqu/v9 v9.19.0
+	github.com/georgysavva/scany/v2 v2.1.4
 	github.com/gin-gonic/gin v1.11.0
 	github.com/google/uuid v1.6.0
+	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.11.1
 	github.com/swaggo/swag v1.16.6
 )

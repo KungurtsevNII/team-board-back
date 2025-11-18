@@ -12,6 +12,7 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createboard"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createcolumn"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createtask"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/getboards"
 	"github.com/sytallax/prettylog"
 )
 
@@ -38,6 +39,7 @@ func main() {
 		createcolumn.NewUC(rep),
 		createboard.NewUC(rep),
 		createtask.NewUC(rep),
+		getboards.NewUC(rep),
 	)
 
 	log.Info("repository connected", slog.String("path", cfg.PostgresConfig.Host))
