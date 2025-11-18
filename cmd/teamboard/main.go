@@ -11,6 +11,7 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/repository/postgres"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createboard"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createcolumn"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/createtask"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/getboards"
 	"github.com/sytallax/prettylog"
 )
@@ -37,6 +38,7 @@ func main() {
 		&cfg.HttpConfig,
 		createcolumn.NewUC(rep),
 		createboard.NewUC(rep),
+		createtask.NewUC(rep),
 		getboards.NewUC(rep),
 	)
 
