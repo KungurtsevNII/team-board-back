@@ -7,7 +7,6 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/domain"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	// "github.com/KungurtsevNII/team-board-back/src/repository/postgres"
 	"github.com/pkg/errors"
 )
 
@@ -37,16 +36,24 @@ func (uc *UC) Handle(ctx context.Context, cmd CreateTaskCommand) (task *domain.T
 		return nil, ErrColumnOrBoardIsNotExists
 	}
 
+	// number, err := uc.repo.GetLastNumberTask(ctx, cmd.BoardID)
+	// if err != nil {
+	// 	if errors.Is(err, pgx.ErrNoRows) {
+	// 		number = 0
+	// 	}else{
+	// 		return nil, errors.Wrap(ErrGetLastNumberFailed, err.Error())
+	// 	}
+	// }else{
+	// 	number++
+	// }
 	number, err := uc.repo.GetLastNumberTask(ctx, cmd.BoardID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			number = 0
-		}else{
-			return nil, errors.Wrap(ErrGetLastNumberFailed, err.Error())
-		}
-	}else{
-		number++
+	if err != nil && !errors.Is(err, pgx.ErrNoRows){
+		return nil, errors.Wrap(ErrGetLastNumberFailed, err.Error())
 	}
+	if errors.Is(err, pgx.ErrNoRows) {
+		number = 0
+	}
+	number ++
 
 	task, err = domain.NewTask(
 		cmd.ColumnID,

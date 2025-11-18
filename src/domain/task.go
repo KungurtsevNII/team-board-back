@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"encoding/json"
 )
 
 type Task struct {
@@ -15,7 +14,7 @@ type Task struct {
 	Title       string
 	Description *string
 	Tags        []string
-	Checklists  *json.RawMessage
+	Checklists  []Checklist
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DeletedAt   *time.Time
@@ -28,7 +27,7 @@ func NewTask(
 	title string,
 	description *string,
 	tags []string,
-	checklists *json.RawMessage,
+	checklists []Checklist,
 ) (*Task, error) {
 	id := uuid.New()
 
@@ -45,9 +44,4 @@ func NewTask(
 		UpdatedAt:   time.Now().UTC(),
 		DeletedAt:    nil,
 	}, nil
-}
-
-func (c *Task) Delete() {
-	now := time.Now().UTC()
-	c.DeletedAt = &now
 }

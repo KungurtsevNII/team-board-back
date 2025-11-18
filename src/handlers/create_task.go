@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -16,34 +15,35 @@ import (
 
 type (
 	CreateTaskRequest struct {
-		ColumnID    string                   `json:"column_id"`
-		BoardID     string                   `json:"board_id"`
-		Title       string                   `json:"title"`
-		Description *string                  `json:"description"`
-		Tags        []string                 `json:"tags"`
+		ColumnID    string         `json:"column_id"`
+		BoardID     string         `json:"board_id"`
+		Title       string         `json:"title"`
+		Description *string        `json:"description"`
+		Tags        []string       `json:"tags"`
 		Checklists  []ChecklistDto `json:"checklists"`
 	}
 
 	CreateTaskResponse struct {
-		ID          string                    `json:"id"`
-		ColumnID    string                    `json:"column_id"`
-		BoardID     string                    `json:"board_id"`
-		Number      int64                     `json:"number"`
-		Title       string                    `json:"title"`
-		Description *string                   `json:"description"`
-		Tags        []string                  `json:"tags"`
+		ID          string         `json:"id"`
+		ColumnID    string         `json:"column_id"`
+		BoardID     string         `json:"board_id"`
+		Number      int64          `json:"number"`
+		Title       string         `json:"title"`
+		Description *string        `json:"description"`
+		Tags        []string       `json:"tags"`
 		Checklists  []ChecklistDto `json:"checklists"`
-		CreatedAt   time.Time                 `json:"created_at"`
-		UpdatedAt   time.Time                 `json:"updated_at"`
-		DeletedAt   *time.Time                `json:"deleted_at"`
+		CreatedAt   time.Time      `json:"created_at"`
+		UpdatedAt   time.Time      `json:"updated_at"`
+		DeletedAt   *time.Time     `json:"deleted_at"`
 	}
 
 	ChecklistDto struct {
-		Title string `json:"title"`
-		Items []struct {
-			Title     string `json:"title"`
-			Completed bool   `json:"completed"`
-		} `json:"items"`
+		Title string             `json:"title"`
+		Items []CheckListItemDto `json:"items"`
+	}
+	CheckListItemDto struct {
+		Title     string `json:"title"`
+		Completed bool   `json:"completed"`
 	}
 
 	CreateTaskUseCase interface {
@@ -75,13 +75,20 @@ func (h *HttpHandler) CreateTask(c *gin.Context) {
 		return
 	}
 
-	checklistsJSON, err := json.Marshal(req.Checklists)
-	if err != nil {
-		log.Warn("failed to bind request", slog.String("err", err.Error()))
-		NewErrorResponse(c, http.StatusBadRequest, "bad body")
-		return
+	checkListsDmn := make([]domain.Checklist, 0, len(req.Checklists))
+	for _, checklist := range req.Checklists {
+		checklistItemsDmn := make([]domain.ChecklistItem, 0, len(checklist.Items))
+		for _, item := range checklist.Items {
+			checklistItemsDmn = append(checklistItemsDmn, domain.NewChecklistItem(
+				item.Title,
+				item.Completed,
+			))
+		}
+		checkListsDmn = append(checkListsDmn, domain.NewChecklist(
+			checklist.Title,
+			checklistItemsDmn,
+		))
 	}
-	rawMsg := json.RawMessage(checklistsJSON)
 
 	cmd, err := createtask.NewCreateTaskCommand(
 		req.ColumnID,
@@ -89,7 +96,7 @@ func (h *HttpHandler) CreateTask(c *gin.Context) {
 		req.Title,
 		req.Description,
 		req.Tags,
-		&rawMsg,
+		checkListsDmn,
 	)
 
 	if err != nil {
@@ -129,7 +136,20 @@ func (h *HttpHandler) CreateTask(c *gin.Context) {
 		return
 	}
 
-
+	checklistResp := make([]ChecklistDto, 0, len(dmn.Checklists))
+	for _, checklist := range dmn.Checklists {
+		checklistItemsResp := make([]CheckListItemDto, 0, len(checklist.Items))
+		for _, item := range checklist.Items {
+			checklistItemsResp = append(checklistItemsResp, CheckListItemDto{
+				Title:     item.Title,
+				Completed: item.Completed,
+			})
+		}
+		checklistResp = append(checklistResp, ChecklistDto{
+			Title: checklist.Title,
+			Items: checklistItemsResp,
+		})
+	}
 	resp := CreateTaskResponse{
 		ID:          dmn.ID.String(),
 		ColumnID:    dmn.ColumnID.String(),
@@ -138,7 +158,7 @@ func (h *HttpHandler) CreateTask(c *gin.Context) {
 		Title:       dmn.Title,
 		Description: dmn.Description,
 		Tags:        dmn.Tags,
-		Checklists:  req.Checklists,
+		Checklists:  checklistResp,
 		CreatedAt:   dmn.CreatedAt,
 		UpdatedAt:   dmn.UpdatedAt,
 		DeletedAt:   dmn.DeletedAt,

@@ -17,7 +17,6 @@ import (
 
 func TestCreateTask(t *testing.T) {
 	now := time.Now()
-	
 	tests := []struct {
 		name        string
 		task        *domain.Task
@@ -34,12 +33,13 @@ func TestCreateTask(t *testing.T) {
 				Title:       "Test Task",
 				Description: stringPtr("Test Description"),
 				Tags:        []string{"tag1", "tag2"},
-				Checklists:  jsonRawMessagePtr(`{"items": []}`),
+				Checklists:  []domain.Checklist{{Title: "Checklist 1"}},
 				CreatedAt:   now,
 				UpdatedAt:   now,
 				DeletedAt:   nil,
 			},
 			mockSetup: func(mock pgxmock.PgxPoolIface, task *domain.Task) {
+				checklistsJSON, _ := json.Marshal(task.Checklists)
 				mock.ExpectExec(`INSERT INTO tasks`).
 					WithArgs(
 						task.ID,
@@ -49,7 +49,7 @@ func TestCreateTask(t *testing.T) {
 						task.Title,
 						task.Description,
 						task.Tags,
-						task.Checklists,
+						checklistsJSON,
 						task.CreatedAt,
 						task.UpdatedAt,
 						task.DeletedAt,
@@ -74,6 +74,7 @@ func TestCreateTask(t *testing.T) {
 				DeletedAt:   nil,
 			},
 			mockSetup: func(mock pgxmock.PgxPoolIface, task *domain.Task) {
+				checklistsJSON, _ := json.Marshal(task.Checklists)
 				mock.ExpectExec(`INSERT INTO tasks`).
 					WithArgs(
 						task.ID,
@@ -83,7 +84,7 @@ func TestCreateTask(t *testing.T) {
 						task.Title,
 						task.Description,
 						task.Tags,
-						task.Checklists,
+						checklistsJSON,
 						task.CreatedAt,
 						task.UpdatedAt,
 						task.DeletedAt,
@@ -102,12 +103,20 @@ func TestCreateTask(t *testing.T) {
 				Title:       "Task with many tags",
 				Description: stringPtr("Description"),
 				Tags:        []string{"tag1", "tag2", "tag3", "tag4", "tag5"},
-				Checklists:  jsonRawMessagePtr(`{"items": [{"text": "item1", "done": false}]}`),
-				CreatedAt:   now,
-				UpdatedAt:   now,
-				DeletedAt:   nil,
+				Checklists: []domain.Checklist{
+					{
+						Title: "Checklist 1",
+						Items: []domain.ChecklistItem{
+							{Title: "item1", Completed: false},
+						},
+					},
+				},
+				CreatedAt: now,
+				UpdatedAt: now,
+				DeletedAt: nil,
 			},
 			mockSetup: func(mock pgxmock.PgxPoolIface, task *domain.Task) {
+				checklistsJSON, _ := json.Marshal(task.Checklists)
 				mock.ExpectExec(`INSERT INTO tasks`).
 					WithArgs(
 						task.ID,
@@ -117,7 +126,7 @@ func TestCreateTask(t *testing.T) {
 						task.Title,
 						task.Description,
 						task.Tags,
-						task.Checklists,
+						checklistsJSON,
 						task.CreatedAt,
 						task.UpdatedAt,
 						task.DeletedAt,
@@ -142,6 +151,7 @@ func TestCreateTask(t *testing.T) {
 				DeletedAt:   timePtr(now),
 			},
 			mockSetup: func(mock pgxmock.PgxPoolIface, task *domain.Task) {
+				checklistsJSON, _ := json.Marshal(task.Checklists)
 				mock.ExpectExec(`INSERT INTO tasks`).
 					WithArgs(
 						task.ID,
@@ -151,7 +161,7 @@ func TestCreateTask(t *testing.T) {
 						task.Title,
 						task.Description,
 						task.Tags,
-						task.Checklists,
+						checklistsJSON,
 						task.CreatedAt,
 						task.UpdatedAt,
 						task.DeletedAt,
@@ -176,6 +186,7 @@ func TestCreateTask(t *testing.T) {
 				DeletedAt:   nil,
 			},
 			mockSetup: func(mock pgxmock.PgxPoolIface, task *domain.Task) {
+				checklistsJSON, _ := json.Marshal(task.Checklists)
 				mock.ExpectExec(`INSERT INTO tasks`).
 					WithArgs(
 						task.ID,
@@ -185,7 +196,7 @@ func TestCreateTask(t *testing.T) {
 						task.Title,
 						task.Description,
 						task.Tags,
-						task.Checklists,
+						checklistsJSON,
 						task.CreatedAt,
 						task.UpdatedAt,
 						task.DeletedAt,
@@ -210,6 +221,7 @@ func TestCreateTask(t *testing.T) {
 				DeletedAt:   nil,
 			},
 			mockSetup: func(mock pgxmock.PgxPoolIface, task *domain.Task) {
+				checklistsJSON, _ := json.Marshal(task.Checklists)
 				mock.ExpectExec(`INSERT INTO tasks`).
 					WithArgs(
 						task.ID,
@@ -219,7 +231,7 @@ func TestCreateTask(t *testing.T) {
 						task.Title,
 						task.Description,
 						task.Tags,
-						task.Checklists,
+						checklistsJSON,
 						task.CreatedAt,
 						task.UpdatedAt,
 						task.DeletedAt,
@@ -244,6 +256,7 @@ func TestCreateTask(t *testing.T) {
 				DeletedAt:   nil,
 			},
 			mockSetup: func(mock pgxmock.PgxPoolIface, task *domain.Task) {
+				checklistsJSON, _ := json.Marshal(task.Checklists)
 				mock.ExpectExec(`INSERT INTO tasks`).
 					WithArgs(
 						task.ID,
@@ -253,7 +266,7 @@ func TestCreateTask(t *testing.T) {
 						task.Title,
 						task.Description,
 						task.Tags,
-						task.Checklists,
+						checklistsJSON,
 						task.CreatedAt,
 						task.UpdatedAt,
 						task.DeletedAt,
@@ -271,8 +284,8 @@ func TestCreateTask(t *testing.T) {
 			defer mock.Close()
 
 			tt.mockSetup(mock, tt.task)
-			repo := &Repository{pool: mock}
 
+			repo := &Repository{pool: mock}
 			err = repo.CreateTask(context.Background(), tt.task)
 
 			if tt.expectedErr != nil {
@@ -294,9 +307,4 @@ func stringPtr(s string) *string {
 
 func timePtr(t time.Time) *time.Time {
 	return &t
-}
-
-func jsonRawMessagePtr(s string) *json.RawMessage {
-	raw := json.RawMessage(s)
-	return &raw
 }

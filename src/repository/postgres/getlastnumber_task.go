@@ -2,10 +2,11 @@ package postgres
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
 func (r Repository) GetLastNumberTask(ctx context.Context, boardID uuid.UUID) (int64, error) {
@@ -18,15 +19,14 @@ func (r Repository) GetLastNumberTask(ctx context.Context, boardID uuid.UUID) (i
 		
 	sql, params, err := ds.ToSQL()
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
+		return 0, errors.Wrap(err, op)
 	}
 
 	var number int64
-    row := r.pool.QueryRow(ctx, sql, params...)
-	err = row.Scan(&number)
-	if err != nil{
-        return 0, fmt.Errorf("%s: %w", op, err)
-    }
+	err = pgxscan.Get(ctx, r.pool, &number, sql, params...)
+	if err != nil {
+		return 0, errors.Wrap(err, op)
+	}
 
     return number, nil
 }
