@@ -15,6 +15,8 @@ type Board struct {
 	CreatedAt time.Time
 	DeletedAt *time.Time
 	UpdatedAt time.Time
+	Columns   []Column
+	Tasks     []Task
 }
 
 var (
@@ -50,3 +52,5 @@ func NewBoard(name string, shortName string) (Board, error) {
 }
 
 var InvalidNameErr = errors.New("invalid board name or short name")
+var ErrBoardNotFound = errors.New("board not found")
+var ErrInvalidID = errors.New("invalid id format")
