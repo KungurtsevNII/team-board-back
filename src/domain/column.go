@@ -8,24 +8,24 @@ import (
 
 type Column struct {
 	ID        uuid.UUID
-	BoardID   string
+	BoardID   uuid.UUID
+	OrderNum  int64
 	Name      string
-	OrderNum  int
 	CreatedAt time.Time
-	DeletedAt *time.Time
 	UpdatedAt time.Time
-	Tasks     []any //TODO
+	DeletedAt *time.Time
 }
 
-func NewColumn(boardID string, name string) (*Column, error) {
-	// todo validation
+func NewColumn(boardID uuid.UUID, name string, orderNum int64) (*Column, error) {
+	id := uuid.New()
 
 	return &Column{
-		ID:        uuid.New(),
+		ID:        id,
 		BoardID:   boardID,
 		Name:      name,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		OrderNum:  orderNum,
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
 		DeletedAt: nil,
 	}, nil
 }

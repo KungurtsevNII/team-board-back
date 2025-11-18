@@ -15,8 +15,8 @@ func (r Repository) GetBoard(ctx context.Context, ID string) (domain.Board, erro
 	if err != nil {
 		return domain.Board{}, domain.ErrInvalidID
 	}
-	var board domain.Board
 
+	var board domain.Board
 	err = pgxscan.Get(ctx, r.pool, &board,
 		`SELECT id, name, short_name, created_at, updated_at, deleted_at 
 		FROM boards WHERE id = $1`, uid)
@@ -37,6 +37,16 @@ func (r Repository) GetBoard(ctx context.Context, ID string) (domain.Board, erro
 	if err != nil {
 		return domain.Board{}, err
 	}
-	//TODO прикрутить задачи в колонки , сделаем как замерджим структуру task , чтобы не путать ветки
+
+	board.Tasks = make([]domain.Task, 0)
+	err = pgxscan.Select(ctx, r.pool, &board.Tasks,
+		`SELECT id, column_id, board_id, number, title 
+		FROM tasks WHERE board_id = $1 
+		ORDER BY number;`, uid)
+	if err != nil {
+		return domain.Board{}, err
+	}
+
 	return board, nil
+
 }

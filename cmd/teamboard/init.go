@@ -1,7 +1,9 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
+	_ "io/fs"
 	"net/http"
 	"strconv"
 	"time"
@@ -10,8 +12,13 @@ import (
 
 	"github.com/KungurtsevNII/team-board-back/src/config"
 	"github.com/KungurtsevNII/team-board-back/src/handlers"
+	"github.com/KungurtsevNII/team-board-back/src/middlewares"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+
+	"github.com/KungurtsevNII/team-board-back/docs"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 const (
@@ -25,6 +32,13 @@ type HttpServer struct {
 	cfg      *config.Config
 }
 
+// @title           Team Board API
+// @version         1.0
+// @description     API для проекта Team Board
+// @host      localhost:8080
+// @BasePath  /api
+// @securityDefinitions.basic  BasicAuth
+// @externalDocs.description  OpenAPI
 func initAndStartHTTPServer(
 	cfg *config.Config,
 	handlers *handlers.HttpHandler,
@@ -35,6 +49,8 @@ func initAndStartHTTPServer(
 	httpErrCh := make(chan error)
 
 	router := gin.Default()
+	router.Use(middlewares.RequestLogger()) //Логирование запросов до основной ручки
+
 	//Это нужно для того чтобы фронт мог достучаться, пока AllowOrigins: []string{"*"}, но потом это нужно поменять на хост фронта
 	//TODO: Поменять AllowOrigins: []string{"*"}, на хост фронта
 	router.Use(cors.New(cors.Config{
@@ -46,10 +62,9 @@ func initAndStartHTTPServer(
 		MaxAge:           12 * time.Hour,                                               // Время кэширования preflight-запросов
 	}))
 
-	//TODO: Добавить сваггер
-	// Будет тут будет запуск сваггера
-	// docs.SwaggerInfo.BasePath = mainPath
-	// routerGroup.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+	//Загрузка swagger
+	docs.SwaggerInfo.BasePath = mainPath
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.HttpConfig.Port),
@@ -71,10 +86,10 @@ func initAndStartHTTPServer(
 
 	v1Group := mainGroup.Group("/v1")
 	{
-		v1Group.POST("/columns", handlers.CreateColumn)
-		v1Group.GET("/columns/:id", handlers.GetColumn)
-		v1Group.PUT("/board", handlers.CreateBoard)
-		v1Group.GET("/board/:id", handlers.GetBoard)
+		v1Group.POST("/boards/:board_id/columns", handlers.CreateColumn)
+		v1Group.POST("/boards", handlers.CreateBoard)
+		v1Group.POST("/tasks", handlers.CreateTask)
+		v1Group.GET("/boards", handlers.GetBoards)
 	}
 
 	log.Info("http server is running", slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),

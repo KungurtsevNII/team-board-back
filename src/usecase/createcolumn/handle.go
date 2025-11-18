@@ -1,9 +1,13 @@
 package createcolumn
 
 import (
+	"context"
+	"errors"
 	"fmt"
 
 	"github.com/KungurtsevNII/team-board-back/src/domain"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	// "github.com/KungurtsevNII/team-board-back/src/repository/postgres"
 )
 
@@ -19,21 +23,43 @@ func NewUC(repo Repo) *UC {
 
 
 type Repo interface {
-	CheckColumn(name string) bool
-	CreateColumn(column domain.Column) error
+	CheckBoard(id string, ctx context.Context) bool 
+	GetLastOrderNumColumn(
+		ctx context.Context, 
+		boardID uuid.UUID,
+	) (orderNum int64, err error)
+	CreateColumn(
+		ctx context.Context,
+		column *domain.Column,
+	) (err error)
+
 }
 
-func (uc *UC) Handle(cmd CreateColumnCommand) error {
-	//тут прям обращение к базе данных
-	const op = "createcolumn.Handle"
-
-	if uc.repo.CheckColumn(cmd.Title) {
-	    return ColumnIsExistsErr
+func (uc *UC) Handle(ctx context.Context, cmd CreateColumnCommand) (column *domain.Column, err error) {
+	if !uc.repo.CheckBoard(cmd.BoardID.String(), ctx) {
+		return nil, fmt.Errorf("%w: %v", ErrBoardIsNotExists, err)
 	}
 
-	column, err := domain.NewColumn(cmd.Title, cmd.BoardID)
+	orderNum, err := uc.repo.GetLastOrderNumColumn(ctx, cmd.BoardID)
 	if err != nil {
-	    return fmt.Errorf("%s: %v", op, err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			orderNum = 0
+		}else{
+			return nil, fmt.Errorf("%w: %v", ErrGetLastOrderNumUnknown, err)
+		}
+	}else{
+		orderNum++
 	}
-	return uc.repo.CreateColumn(*column)
+
+	column, err = domain.NewColumn(cmd.BoardID, cmd.Name, orderNum)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrValidationFailed, err)
+	}
+
+	err = uc.repo.CreateColumn(ctx, column)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrCreateColumnUnknown, err)
+	}
+
+	return column, nil
 }

@@ -1,8 +1,6 @@
 package domain
 
 import (
-	// "errors"
-	// "strings"
 	"errors"
 	"regexp"
 	"time"
@@ -18,17 +16,32 @@ type Board struct {
 	DeletedAt *time.Time
 	UpdatedAt time.Time
 	Columns   []Column
+	Tasks     []Task
 }
 
 var (
 	shortNameRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]{2,10}$`)
 )
 
-func NewBoard(name string, shortName string) (*Board, error) {
-	//todo validation
-	now := time.Now()
+func NewBoard(name string, shortName string) (Board, error) {
+	//TODO : доделать валиадцию
+	if name == "" {
+		return Board{}, InvalidNameErr
+	}
+	if len(name) > 100 {
+		return Board{}, InvalidNameErr
+	}
 
-	return &Board{
+	if shortName == "" {
+		return Board{}, InvalidNameErr
+	}
+	if !shortNameRegex.MatchString(shortName) {
+		return Board{}, InvalidNameErr
+	}
+
+	now := time.Now().UTC()
+
+	return Board{
 		ID:        uuid.New(),
 		Name:      name,
 		ShortName: shortName,
@@ -38,5 +51,6 @@ func NewBoard(name string, shortName string) (*Board, error) {
 	}, nil
 }
 
+var InvalidNameErr = errors.New("invalid board name or short name")
 var ErrBoardNotFound = errors.New("board not found")
 var ErrInvalidID = errors.New("invalid id format")

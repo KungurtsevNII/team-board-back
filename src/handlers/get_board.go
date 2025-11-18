@@ -22,21 +22,23 @@ type (
 		Name      string           `json:"name"`
 		ShortName string           `json:"short_name"`
 		Columns   []GetBoardColumn `json:"columns"`
+		Tasks     []GetBoardTask   `json:"tasks"`
 	}
 
 	GetBoardColumn struct {
 		ID       uuid.UUID      `json:"id"`
-		BoardID  string         `json:"board_id"`
-		OrderNum int            `json:"order_num"`
+		BoardID  uuid.UUID      `json:"board_id"`
+		OrderNum int64          `json:"order_num"`
 		Name     string         `json:"name"`
 		Tasks    []GetBoardTask `json:"tasks"`
 	}
 
 	GetBoardTask struct {
 		ID       uuid.UUID `json:"id"`
-		ColumnID string    `json:"column_id"`
+		ColumnID uuid.UUID `json:"column_id"`
+		BoardID  uuid.UUID `json:"board_id"`
+		Number   int64     `json:"number"`
 		Title    string    `json:"title"`
-		Content  string    `json:"content"`
 	}
 
 	GetBoardUseCase interface {
@@ -83,7 +85,18 @@ func (h *HttpHandler) GetBoard(c *gin.Context) {
 			BoardID:  col.BoardID,
 			OrderNum: col.OrderNum,
 			Name:     col.Name,
-			Tasks:    []GetBoardTask{}, // TODO : сделать таски
+			Tasks:    []GetBoardTask{},
+		}
+	}
+
+	tasks := make([]GetBoardTask, len(board.Tasks))
+	for i, task := range board.Tasks {
+		tasks[i] = GetBoardTask{
+			ID:       task.ID,
+			ColumnID: task.ColumnID,
+			BoardID:  task.BoardID,
+			Number:   task.Number,
+			Title:    task.Title,
 		}
 	}
 

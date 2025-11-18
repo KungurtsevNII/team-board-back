@@ -28,9 +28,12 @@ help:
 	@echo "  make lint           				 — запустить линтер"
 	@echo "  make lint-fix      				 — запустить линтер с автоисправлением"
 	@echo "  make pre-commit    				 — подготовка к коммиту (deps + lint + test)"
+	@echo "  make swag           				 — генерация OpenApi документации"
+	@echo "  make install-swag           			 — скачивание swaggo"
 	@echo "  make docker-run   				 — запуск в контейнера (c беком)"
 	@echo "  make docker-dev-run  				 — запуск в контейнера локальной разработки (без бека)"
 	@echo "  make migrate-create {имя файла}     		 — создание новой миграции (up && down) в папке migrate"
+	@echo "  make generate-docs    			 — инициализация OpenApi документации"
 
 # Сборка бинарника
 .PHONY: build
@@ -51,7 +54,6 @@ build-flags:
 run:
 	@echo "Запуск приложения..."
 	go run ./cmd/$(APP_NAME)/init.go ./cmd/$(APP_NAME)/main.go
-
 
 # Запуск приложения (в режиме разработки)
 .PHONY: run-dev
@@ -134,3 +136,16 @@ docker-run:
 docker-dev-run:
 	@echo "Запуск в контейнера локальной разработки (без бека)..."
 	docker-compose -f docker-compose.dev.yaml up --build -d
+
+# Генерация документации Swagger
+.PHONY: swag
+swag: install-swag
+	@echo "Инициализация OpenApi документации..."
+	swag init -g ./cmd/teamboard/init.go
+
+# Скачивание Swagger
+.PHONY: install-swag
+install-swag:
+	@echo "Скачивание swago..."
+	go install github.com/swaggo/swag/cmd/swag@latest
+
