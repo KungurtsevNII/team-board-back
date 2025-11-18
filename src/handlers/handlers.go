@@ -18,6 +18,7 @@ type HttpHandler struct {
 	getBoardUC     GetBoardUseCase
 	createTaskUC   CreateTaskUseCase
 	getBoardsUC    GetBoardsUseCase
+	getTaskUC      GetTaskUseCase
 }
 
 func NewHttpHandler(
@@ -27,7 +28,7 @@ func NewHttpHandler(
 	getBoardUC GetBoardUseCase,
 	createTaskUC CreateTaskUseCase,
 	getboardsUC GetBoardsUseCase,
-
+	getTaskUC GetTaskUseCase,
 ) *HttpHandler {
 	return &HttpHandler{
 		cfg:            cfg,
@@ -35,8 +36,8 @@ func NewHttpHandler(
 		createBoardUC:  createBoardUC,
 		getBoardUC:     getBoardUC,
 		createTaskUC:   createTaskUC,
-
-		getBoardsUC: getboardsUC,
+		getBoardsUC:    getboardsUC,
+		getTaskUC:      getTaskUC,
 	}
 }
 
