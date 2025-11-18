@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (task *TaskRecord) ToDomain() (*domain.Task, error) {
+func (task *TaskRecord) toDomain() (*domain.Task, error) {
 	const op = "postgres.TaskRecord.ToDomain"
 
 	var cl []domain.Checklist

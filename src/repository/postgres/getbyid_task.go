@@ -30,7 +30,7 @@ func (r Repository) GetTaskByID(ctx context.Context, taskID uuid.UUID) (*domain.
 		return nil, errors.Wrap(err, op)
 	}
 
-	dmn, err := task.ToDomain()
+	dmn, err := task.toDomain()
 	if err != nil {
 		return nil, errors.Wrap(err, op)
 	}

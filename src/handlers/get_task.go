@@ -77,12 +77,12 @@ func (h *HttpHandler) GetTask(c *gin.Context) {
 		return
 	}
 
-	resp := TaskDomainToGetTaskResponse(task)
+	resp := taskDomainToGetTaskResponse(task)
 
 	c.JSON(http.StatusOK, resp)
 }
 
-func TaskDomainToGetTaskResponse(task *domain.Task) *GetTaskResponse {
+func taskDomainToGetTaskResponse(task *domain.Task) *GetTaskResponse {
 	checklistResp := make([]ChecklistDto, 0, len(task.Checklists))
 	for _, checklist := range task.Checklists {
 		checklistItemsResp := make([]CheckListItemDto, 0, len(checklist.Items))
