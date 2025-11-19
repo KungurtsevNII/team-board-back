@@ -51,6 +51,7 @@ func NewCreateTaskCommand(
 	return ctc, nil
 }
 
+// todo удалить
 type GetTaskStatusQuery struct {
 	TaskID string
 }

@@ -8,6 +8,12 @@ import (
 	"github.com/google/uuid"
 )
 
+// todo в отдельный блок
+var (
+	InvalidNameErr = errors.New("invalid board name or short name")
+	shortNameRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]{2,10}$`)
+)
+
 type Board struct {
 	ID        uuid.UUID
 	Name      string
@@ -16,10 +22,6 @@ type Board struct {
 	DeletedAt *time.Time
 	UpdatedAt time.Time
 }
-
-var (
-	shortNameRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]{2,10}$`)
-)
 
 func NewBoard(name string, shortName string) (Board, error) {
 	//TODO : доделать валиадцию
@@ -48,5 +50,3 @@ func NewBoard(name string, shortName string) (Board, error) {
 		DeletedAt: nil,
 	}, nil
 }
-
-var InvalidNameErr = errors.New("invalid board name or short name")

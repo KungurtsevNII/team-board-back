@@ -2,6 +2,8 @@ package createboard
 
 import "errors"
 
+// todo в один блок и привести к формату ошибок. Err....
+
 // имя слишком короткое или слишком длинное
 var InvalidNameErr = errors.New("name must be between 1 and 100 characters")
 

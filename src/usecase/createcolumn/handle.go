@@ -5,9 +5,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/KungurtsevNII/team-board-back/src/domain"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+
+	"github.com/KungurtsevNII/team-board-back/src/domain"
 	// "github.com/KungurtsevNII/team-board-back/src/repository/postgres"
 )
 
@@ -21,21 +22,20 @@ func NewUC(repo Repo) *UC {
 	}
 }
 
-
 type Repo interface {
-	CheckBoard(id string, ctx context.Context) bool 
+	CheckBoard(id string, ctx context.Context) bool
 	GetLastOrderNumColumn(
-		ctx context.Context, 
+		ctx context.Context,
 		boardID uuid.UUID,
 	) (orderNum int64, err error)
 	CreateColumn(
 		ctx context.Context,
 		column *domain.Column,
 	) (err error)
-
 }
 
 func (uc *UC) Handle(ctx context.Context, cmd CreateColumnCommand) (column *domain.Column, err error) {
+	// todo errrors wrap
 	if !uc.repo.CheckBoard(cmd.BoardID.String(), ctx) {
 		return nil, fmt.Errorf("%w: %v", ErrBoardIsNotExists, err)
 	}
@@ -44,10 +44,11 @@ func (uc *UC) Handle(ctx context.Context, cmd CreateColumnCommand) (column *doma
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			orderNum = 0
-		}else{
+		} else {
+			// todo errors wrap
 			return nil, fmt.Errorf("%w: %v", ErrGetLastOrderNumUnknown, err)
 		}
-	}else{
+	} else {
 		orderNum++
 	}
 

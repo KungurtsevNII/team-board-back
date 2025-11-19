@@ -8,8 +8,8 @@ import (
 )
 
 type CreateColumnCommand struct {
-	BoardID  uuid.UUID `validate:"required,uuid"`
-	Name     string `validate:"required,min=1,max=100"`
+	BoardID uuid.UUID `validate:"required,uuid"`
+	Name    string    `validate:"required,min=1,max=100"`
 }
 
 func NewCreateColumnCommand(boardID, name string) (CreateColumnCommand, error) {
@@ -22,8 +22,8 @@ func NewCreateColumnCommand(boardID, name string) (CreateColumnCommand, error) {
 	}
 
 	ccc := CreateColumnCommand{
-		BoardID:   bID,
-		Name:      name,
+		BoardID: bID,
+		Name:    name,
 	}
 
 	err = validate.Struct(ccc)
@@ -34,6 +34,7 @@ func NewCreateColumnCommand(boardID, name string) (CreateColumnCommand, error) {
 	return ccc, nil
 }
 
+// todo удалить
 type GetTaskStatusQuery struct {
 	TaskID string
 }
