@@ -139,6 +139,22 @@ definitions:
       updated_at:
         type: string
     type: object
+  handlers.MoveTaskRequest:
+    properties:
+      column_id:
+        type: string
+    required:
+    - column_id
+    type: object
+  handlers.MoveTaskResponse:
+    properties:
+      board_id:
+        type: string
+      column_id:
+        type: string
+      id:
+        type: string
+    type: object
 externalDocs:
   description: OpenAPI
 host: localhost:8080
@@ -314,6 +330,52 @@ paths:
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
       summary: Получение задачи по ID
+      tags:
+      - Tasks
+  /v1/tasks/{task_id}/move:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID задачи
+        in: path
+        name: task_id
+        required: true
+        type: string
+      - description: request на перемещение задачи
+        in: body
+        name: moveTaskRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.MoveTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.MoveTaskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "408":
+          description: Request Timeout
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Перемещение задачи в другую колонку
       tags:
       - Tasks
 securityDefinitions:
