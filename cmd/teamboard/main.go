@@ -14,6 +14,7 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createtask"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/deleteboard"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/getboards"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/gettask"
 	"github.com/sytallax/prettylog"
 )
 
@@ -42,6 +43,7 @@ func main() {
 		createtask.NewUC(rep),
 		getboards.NewUC(rep),
 		deleteboard.NewUC(rep),
+		gettask.NewUC(rep),
 	)
 
 	log.Info("repository connected", slog.String("path", cfg.PostgresConfig.Host))
