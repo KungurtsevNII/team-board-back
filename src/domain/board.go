@@ -1,16 +1,15 @@
 package domain
 
 import (
-	"errors"
 	"regexp"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
-// todo в отдельный блок
 var (
-	InvalidNameErr = errors.New("invalid board name or short name")
+	ErrInvalidName = errors.New("invalid board name or short name")
 	shortNameRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]{2,10}$`)
 )
 
@@ -24,19 +23,19 @@ type Board struct {
 }
 
 func NewBoard(name string, shortName string) (Board, error) {
-	//TODO : доделать валиадцию
+	const op = "domain.NewBoard"
 	if name == "" {
-		return Board{}, InvalidNameErr
+		return Board{}, errors.Wrap(ErrInvalidName, op)
 	}
 	if len(name) > 100 {
-		return Board{}, InvalidNameErr
+		return Board{}, errors.Wrap(ErrInvalidName, op)
 	}
 
 	if shortName == "" {
-		return Board{}, InvalidNameErr
+		return Board{}, errors.Wrap(ErrInvalidName, op)
 	}
 	if !shortNameRegex.MatchString(shortName) {
-		return Board{}, InvalidNameErr
+		return Board{}, errors.Wrap(ErrInvalidName, op)
 	}
 
 	now := time.Now().UTC()

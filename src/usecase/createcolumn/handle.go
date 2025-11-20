@@ -2,14 +2,11 @@ package createcolumn
 
 import (
 	"context"
-	"errors"
-	"fmt"
-
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
 	"github.com/KungurtsevNII/team-board-back/src/domain"
-	// "github.com/KungurtsevNII/team-board-back/src/repository/postgres"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/pkg/errors"
 )
 
 type UC struct {
@@ -23,7 +20,7 @@ func NewUC(repo Repo) *UC {
 }
 
 type Repo interface {
-	CheckBoard(id string, ctx context.Context) bool
+	CheckBoard(ctx context.Context, id string) bool
 	GetLastOrderNumColumn(
 		ctx context.Context,
 		boardID uuid.UUID,
@@ -34,10 +31,9 @@ type Repo interface {
 	) (err error)
 }
 
-func (uc *UC) Handle(ctx context.Context, cmd CreateColumnCommand) (column *domain.Column, err error) {
-	// todo errrors wrap
-	if !uc.repo.CheckBoard(cmd.BoardID.String(), ctx) {
-		return nil, fmt.Errorf("%w: %v", ErrBoardIsNotExists, err)
+func (uc *UC) Handle(ctx context.Context, cmd Command) (column *domain.Column, err error) {
+	if !uc.repo.CheckBoard(ctx, cmd.BoardID.String()) {
+		return nil, errors.Wrap(err, ErrBoardIsNotExists.Error())
 	}
 
 	orderNum, err := uc.repo.GetLastOrderNumColumn(ctx, cmd.BoardID)
@@ -45,8 +41,7 @@ func (uc *UC) Handle(ctx context.Context, cmd CreateColumnCommand) (column *doma
 		if errors.Is(err, pgx.ErrNoRows) {
 			orderNum = 0
 		} else {
-			// todo errors wrap
-			return nil, fmt.Errorf("%w: %v", ErrGetLastOrderNumUnknown, err)
+			return nil, errors.Wrap(ErrGetLastOrderNumUnknown, err.Error())
 		}
 	} else {
 		orderNum++
@@ -54,12 +49,12 @@ func (uc *UC) Handle(ctx context.Context, cmd CreateColumnCommand) (column *doma
 
 	column, err = domain.NewColumn(cmd.BoardID, cmd.Name, orderNum)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrValidationFailed, err)
+		return nil, errors.Wrap(ErrValidationFailed, err.Error())
 	}
 
 	err = uc.repo.CreateColumn(ctx, column)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrCreateColumnUnknown, err)
+		return nil, errors.Wrap(ErrCreateColumnUnknown, err.Error())
 	}
 
 	return column, nil

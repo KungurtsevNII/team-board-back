@@ -1,40 +1,33 @@
 package createcolumn
 
 import (
-	"fmt"
-
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
-type CreateColumnCommand struct {
+type Command struct {
 	BoardID uuid.UUID `validate:"required,uuid"`
 	Name    string    `validate:"required,min=1,max=100"`
 }
 
-func NewCreateColumnCommand(boardID, name string) (CreateColumnCommand, error) {
-	//TODO: Возможно стоит вынести как синглтон
+func NewCommand(boardID, name string) (Command, error) {
 	validate := validator.New()
 
 	bID, err := uuid.Parse(boardID)
 	if err != nil {
-		return CreateColumnCommand{}, fmt.Errorf("%w: %v", ErrInvalidUUID, err)
+		return Command{}, errors.Wrap(err, ErrInvalidUUID.Error())
 	}
 
-	ccc := CreateColumnCommand{
+	ccc := Command{
 		BoardID: bID,
 		Name:    name,
 	}
 
 	err = validate.Struct(ccc)
 	if err != nil {
-		return CreateColumnCommand{}, fmt.Errorf("%w: %v", ErrValidationFailed, err)
+		return Command{}, errors.Wrap(err, ErrValidationFailed.Error())
 	}
 
 	return ccc, nil
-}
-
-// todo удалить
-type GetTaskStatusQuery struct {
-	TaskID string
 }

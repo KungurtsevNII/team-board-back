@@ -5,8 +5,6 @@ import (
 )
 
 var (
-	// todo удалить комменты
-	// ErrColumnIsExistsErr = errors.New("column is exists")
 	ErrBoardIsNotExists       = errors.New("board is not exists")
 	ErrInvalidUUID            = errors.New("invalid uuid")
 	ErrValidationFailed       = errors.New("validation failed")
