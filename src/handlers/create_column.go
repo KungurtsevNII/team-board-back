@@ -14,9 +14,8 @@ import (
 )
 
 type (
-	// Контракт/Сваггер
 	CreateColumnRequest struct {
-		Name     string `json:"name"`
+		Name string `json:"name"`
 	}
 
 	CreateColumnResponse struct {
@@ -29,11 +28,10 @@ type (
 		DeletedAt *time.Time `json:"deleted_at"`
 	}
 
-	// Один юз кейс, на один запрос, нра один пользвательский сценарий.
 	CreateColumnUseCase interface {
 		Handle(
 			ctx context.Context,
-			cmd createcolumn.CreateColumnCommand,
+			cmd createcolumn.Command,
 		) (column *domain.Column, err error)
 	}
 )
@@ -62,13 +60,13 @@ func (h *HttpHandler) CreateColumn(c *gin.Context) {
 		return
 	}
 
-	cmd, err := createcolumn.NewCreateColumnCommand(BoardID, req.Name)
+	cmd, err := createcolumn.NewCommand(BoardID, req.Name)
 	if err != nil {
 		log.Warn("failed to create command",
 			slog.String("err", err.Error()),
 			slog.String("board_id", BoardID),
 			slog.String("name", req.Name))
-		
+
 		switch {
 		case errors.Is(err, createcolumn.ErrValidationFailed):
 			NewErrorResponse(c, http.StatusBadRequest, "validation failed")
@@ -86,7 +84,7 @@ func (h *HttpHandler) CreateColumn(c *gin.Context) {
 			slog.String("err", err.Error()),
 			slog.String("board_id", cmd.BoardID.String()),
 			slog.String("name", cmd.Name))
-		
+
 		switch {
 		case errors.Is(err, createcolumn.ErrBoardIsNotExists):
 			NewErrorResponse(c, http.StatusNotFound, "board not found")
@@ -118,7 +116,3 @@ func (h *HttpHandler) CreateColumn(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, resp)
 }
-
-// 1. Handler Request/Response
-// 2. Логика приложения. DTO -> use case (работа с базой, работа с кэшом, работа с очередями) -> DTO
-// 3.

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/KungurtsevNII/team-board-back/src/config"
@@ -61,9 +62,9 @@ func NewErrorResponse(c *gin.Context, statusCode int, message string) {
 }
 
 func (s *HttpHandler) Healthcheck(c *gin.Context) {
-	// const op = "handlers.Healthcheck"
-	// log := s.log.With("op", op, "method", c.Request.Method)
-	// log.Info(c.Request.URL.Path)
+	const op = "handlers.Healthcheck"
+	log := slog.Default().With("op", op)
+	log.Info("healthcheck endpoint called")
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": http.StatusOK,
