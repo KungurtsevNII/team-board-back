@@ -49,7 +49,7 @@ type (
 	CreateTaskUseCase interface {
 		Handle(
 			ctx context.Context,
-			cmd createtask.CreateTaskCommand,
+			cmd createtask.Command,
 		) (task *domain.Task, err error)
 	}
 )
@@ -90,7 +90,7 @@ func (h *HttpHandler) CreateTask(c *gin.Context) {
 		))
 	}
 
-	cmd, err := createtask.NewCreateTaskCommand(
+	cmd, err := createtask.NewCommand(
 		req.ColumnID,
 		req.BoardID,
 		req.Title,

@@ -2,18 +2,19 @@ package postgres
 
 import (
 	"context"
-	"errors"
 
 	"github.com/KungurtsevNII/team-board-back/src/domain"
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
-func (r Repository) GetBoards(user_id uuid.UUID, ctx context.Context) ([]domain.Board, error) {
+func (r Repository) GetBoards(ctx context.Context, user_id uuid.UUID) ([]domain.Board, error) {
+	const op = "postgres.GetBoards"
 	//TODO проверять user_id и подставлять его как параметр в запрос
 	_, err := uuid.Parse(user_id.String())
 	if err != nil {
-		return nil, ErrInvalidUserID
+		return nil, errors.Wrap(err, op)
 	}
 
 	boards := make([]domain.Board, 0)
@@ -23,10 +24,7 @@ func (r Repository) GetBoards(user_id uuid.UUID, ctx context.Context) ([]domain.
 	FROM boards
 	ORDER BY updated_at DESC`)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, op)
 	}
-
 	return boards, nil
 }
-
-var ErrInvalidUserID = errors.New("invalid user id")

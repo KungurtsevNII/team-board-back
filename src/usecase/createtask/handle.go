@@ -3,7 +3,6 @@ package createtask
 import (
 	"context"
 
-
 	"github.com/KungurtsevNII/team-board-back/src/domain"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -20,25 +19,24 @@ func NewUC(repo Repo) *UC {
 	}
 }
 
-
 type Repo interface {
-	CheckColumnInBoard(ctx context.Context, boardID uuid.UUID, columnID uuid.UUID) (bool,error)
+	CheckColumnInBoard(ctx context.Context, boardID uuid.UUID, columnID uuid.UUID) (bool, error)
 	GetLastNumberTask(ctx context.Context, boardID uuid.UUID) (int64, error)
 	CreateTask(ctx context.Context, task *domain.Task) error
 }
 
-func (uc *UC) Handle(ctx context.Context, cmd CreateTaskCommand) (task *domain.Task, err error) {
-	ex, err := uc.repo.CheckColumnInBoard(ctx, cmd.BoardID, cmd.ColumnID) 
+func (uc *UC) Handle(ctx context.Context, cmd Command) (task *domain.Task, err error) {
+	ex, err := uc.repo.CheckColumnInBoard(ctx, cmd.BoardID, cmd.ColumnID)
 	if err != nil {
 		return nil, errors.Wrap(ErrCheckColumnInBoardFailed, err.Error())
 	}
-	if !ex{
+	if !ex {
 		return nil, ErrColumnOrBoardIsNotExists
 	}
 
 	number, err := uc.repo.GetLastNumberTask(ctx, cmd.BoardID)
 	number++
-	if err != nil && !errors.Is(err, pgx.ErrNoRows){
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return nil, errors.Wrap(ErrGetLastNumberFailed, err.Error())
 	}
 	if errors.Is(err, pgx.ErrNoRows) {

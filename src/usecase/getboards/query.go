@@ -2,19 +2,20 @@ package getboards
 
 import (
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
-type GetBoardsQuery struct {
+type Query struct {
 	UserID uuid.UUID
 }
 
-func NewGetBoardsQuery(userID string) (GetBoardsQuery, error) {
+func NewQuery(userID string) (Query, error) {
 	uid, err := uuid.Parse(userID)
 	if err != nil {
-		return GetBoardsQuery{}, ErrInvalidUserID
+		return Query{}, errors.Wrap(ErrInvalidUserID, err.Error())
 	}
 
-	return GetBoardsQuery{
+	return Query{
 		UserID: uid,
 	}, nil
 }

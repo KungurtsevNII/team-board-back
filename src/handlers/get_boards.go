@@ -15,10 +15,10 @@ import (
 
 type (
 	Board struct {
-		ID        uuid.UUID `db:"id" ,json:"id"`
-		Name      string    `db:"name" ,json:"name"`
-		ShortName string    `db:"short_name" ,json:"short_name"`
-		UpdatedAt time.Time `db:"updated_at" ,json:"updated_at"`
+		ID        uuid.UUID `db:"id" json:"id"`
+		Name      string    `db:"name" json:"name"`
+		ShortName string    `db:"short_name" json:"short_name"`
+		UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 	}
 
 	GetBoardsResponse struct {
@@ -30,7 +30,7 @@ type (
 	}
 
 	GetBoardsUseCase interface {
-		Handle(cmd getboards.GetBoardsQuery, ctx context.Context) ([]domain.Board, error)
+		Handle(ctx context.Context, cmd getboards.Query) ([]domain.Board, error)
 	}
 )
 
@@ -43,13 +43,13 @@ func (h *HttpHandler) GetBoards(c *gin.Context) {
 	//TODO получать user_id из тела запроса
 	userID := "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
-	cmd, err := getboards.NewGetBoardsQuery(userID)
+	cmd, err := getboards.NewQuery(userID)
 	if err != nil {
 		NewErrorResponse(c, http.StatusBadRequest, "failed to create command")
 		return
 	}
 
-	boards, err := h.getBoardsUC.Handle(cmd, c.Request.Context())
+	boards, err := h.getBoardsUC.Handle(c.Request.Context(), cmd)
 	if err != nil {
 		switch {
 		case errors.Is(err, getboards.ErrInvalidUserID):
@@ -69,7 +69,6 @@ func (h *HttpHandler) GetBoards(c *gin.Context) {
 			UpdatedAt: board.UpdatedAt,
 		}
 	}
-	//TODO маппить domain.Board в handlers.Board
 
 	c.JSON(http.StatusOK, GetBoardsResponse{Boards: boardsResp})
 }
