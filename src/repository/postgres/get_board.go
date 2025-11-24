@@ -10,17 +10,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (r Repository) GetBoard(ctx context.Context, ID string) (*domain.Board, error) {
+func (r Repository) GetBoard(ctx context.Context, ID uuid.UUID) (*domain.Board, error) {
 	const op = "postgres.GetBoard"
-	uid, err := uuid.Parse(ID)
-	if err != nil {
-		return nil, errors.Wrap(err, op)
-	}
 
 	var board domain.Board
-	err = pgxscan.Get(ctx, r.pool, &board,
+	err := pgxscan.Get(ctx, r.pool, &board,
 		`SELECT id, name, short_name, created_at, updated_at, deleted_at 
-		FROM boards WHERE id = $1`, uid)
+		FROM boards WHERE id = $1`, ID)
 
 	if err != nil {
 		switch {

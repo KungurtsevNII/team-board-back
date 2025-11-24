@@ -2,12 +2,14 @@ package getboard
 
 import (
 	"context"
+
 	"github.com/KungurtsevNII/team-board-back/src/domain"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
 type Repo interface {
-	GetBoard(ctx context.Context, ID string) (*domain.Board, error)
+	GetBoard(ctx context.Context, ID uuid.UUID) (*domain.Board, error)
 }
 
 type UC struct {

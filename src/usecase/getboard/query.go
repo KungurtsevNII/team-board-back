@@ -3,15 +3,15 @@ package getboard
 import "github.com/google/uuid"
 
 type Query struct {
-	ID string
+	ID uuid.UUID
 }
 
 func NewQuery(ID string) (Query, error) {
-	_, err := uuid.Parse(ID)
+	uid, err := uuid.Parse(ID)
 	if err != nil {
 		return Query{}, err
 	}
 	return Query{
-		ID: ID,
+		ID: uid,
 	}, nil
 }
