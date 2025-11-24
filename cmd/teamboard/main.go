@@ -24,8 +24,8 @@ const (
 )
 
 func main() {
-	cfg := config.MustLoad()    //Сделал другой инит конфига
-	log := setupLogger(cfg.Env) //И логгер читаемый
+	cfg := config.MustLoad()
+	log := setupLogger(cfg.Env)
 
 	log.Info("starting application", slog.String("env", cfg.Env))
 	log.Info("config", slog.Any("cfg", cfg))
