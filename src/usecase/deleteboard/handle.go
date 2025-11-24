@@ -21,7 +21,7 @@ func NewUC(repo Repo) *UC {
 }
 
 func (uc *UC) Handle(ctx context.Context, cmd Command) error {
-	const op = "createboard.Handle"
+	const op = "deleteboard.Handle"
 
 	err := uc.repo.DeleteBoard(ctx, cmd.ID)
 	if err != nil {

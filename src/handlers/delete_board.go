@@ -8,22 +8,30 @@ import (
 
 	"github.com/KungurtsevNII/team-board-back/src/usecase/deleteboard"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type (
 	DeleteBoardRequest struct {
-		BoardID string `json:"board_id"`
-	}
-
-	DeleteBoardResponse struct {
-		Success bool `json:"success"`
+		ID string `json:"id"`
 	}
 
 	DeleteBoardUseCase interface {
 		Handle(ctx context.Context, cmd deleteboard.Command) error
 	}
 )
+
+// DeleteBoard godoc
+// @Summary Удаление доски
+// @Description Удаляет доску по её ID
+// @Tags boards
+// @Accept json
+// @Produce json
+// @Param request body DeleteBoardRequest true "ID доски"
+// @Success 204 "Доска успешно удалена"
+// @Failure 400 {object} ErrorResponse "Некорректный запрос или неверный ID"
+// @Failure 404 {object} ErrorResponse "Доска не найдена"
+// @Failure 500 {object} ErrorResponse "Внутренняя ошибка сервера"
+// @Router /v1/boards [delete]
 
 func (h *HttpHandler) DeleteBoard(c *gin.Context) {
 	const op = "handlers.DeleteBoards"
@@ -36,12 +44,7 @@ func (h *HttpHandler) DeleteBoard(c *gin.Context) {
 		return
 	}
 
-	uid, err := uuid.Parse(req.BoardID)
-	if err != nil {
-		NewErrorResponse(c, http.StatusBadRequest, "invalid board id")
-		return
-	}
-	cmd, err := deleteboard.NewCommand(uid)
+	cmd, err := deleteboard.NewCommand(req.ID)
 	if err != nil {
 		NewErrorResponse(c, http.StatusBadRequest, "failed to create command")
 		return
@@ -54,9 +57,14 @@ func (h *HttpHandler) DeleteBoard(c *gin.Context) {
 			NewErrorResponse(c, http.StatusBadRequest, "board id is empty")
 		case errors.Is(err, deleteboard.ErrBoardIdInvalid):
 			NewErrorResponse(c, http.StatusBadRequest, "board id is invalid")
+		case errors.Is(err, deleteboard.ErrBoardDoesntExist):
+			NewErrorResponse(c, http.StatusNotFound, "board doesn't exist")
+		default:
+			log.Error("failed to delete board", "error", err)
+			NewErrorResponse(c, http.StatusInternalServerError, "internal server error")
 		}
 		return
 	}
 
-	c.JSON(http.StatusOK, DeleteBoardResponse{Success: true})
+	c.JSON(http.StatusNoContent, "")
 }

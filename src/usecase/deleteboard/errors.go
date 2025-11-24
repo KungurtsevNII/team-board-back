@@ -3,6 +3,7 @@ package deleteboard
 import "errors"
 
 var (
-	ErrBoardIdEmpty   = errors.New("board id is empty")
-	ErrBoardIdInvalid = errors.New("board id is invalid")
+	ErrBoardIdEmpty     = errors.New("board id is empty")
+	ErrBoardIdInvalid   = errors.New("board id is invalid")
+	ErrBoardDoesntExist = errors.New("board doesn't exist")
 )
