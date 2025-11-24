@@ -2,13 +2,14 @@ package getboards
 
 import (
 	"context"
+
 	"github.com/KungurtsevNII/team-board-back/src/domain"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
 type Repo interface {
-	GetBoards(user_id uuid.UUID, ctx context.Context) ([]domain.Board, error)
+	GetBoards(ctx context.Context, user_id uuid.UUID) ([]domain.Board, error)
 }
 
 type UC struct {
@@ -21,12 +22,10 @@ func NewUC(repo Repo) *UC {
 	}
 }
 
-func (uc *UC) Handle(cmd GetBoardsQuery, ctx context.Context) ([]domain.Board, error) {
-	const op = "getboards.Handle"
-
-	boards, err := uc.repo.GetBoards(cmd.UserID, ctx)
+func (uc *UC) Handle(ctx context.Context, cmd Query) ([]domain.Board, error) {
+	boards, err := uc.repo.GetBoards(ctx, cmd.UserID)
 	if err != nil {
-		errors.Wrap(err, op)
+		errors.Wrap(ErrGetBoards, err.Error())
 	}
 
 	return boards, nil

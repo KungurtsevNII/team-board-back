@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type CreateTaskCommand struct {
+type Command struct {
 	ColumnID    uuid.UUID `validate:"required,uuid"`
 	BoardID     uuid.UUID `validate:"required,uuid"`
 	Title       string    `validate:"required,min=1,max=255"`
@@ -16,25 +16,25 @@ type CreateTaskCommand struct {
 	Checklists  []domain.Checklist
 }
 
-func NewCreateTaskCommand(
+func NewCommand(
 	columnID, boardID, name string,
 	description *string,
 	tags []string,
 	checklists []domain.Checklist,
-) (CreateTaskCommand, error) {
+) (Command, error) {
 	validate := validator.New()
 
 	bID, err := uuid.Parse(boardID)
 	if err != nil {
-		return CreateTaskCommand{}, errors.Wrap(ErrInvalidUUID, err.Error())
+		return Command{}, errors.Wrap(ErrInvalidUUID, err.Error())
 	}
 
 	cID, err := uuid.Parse(columnID)
 	if err != nil {
-		return CreateTaskCommand{}, errors.Wrap(ErrInvalidUUID, err.Error())
+		return Command{}, errors.Wrap(ErrInvalidUUID, err.Error())
 	}
 
-	ctc := CreateTaskCommand{
+	ctc := Command{
 		ColumnID:    cID,
 		BoardID:     bID,
 		Title:       name,
@@ -45,12 +45,8 @@ func NewCreateTaskCommand(
 
 	err = validate.Struct(ctc)
 	if err != nil {
-		return CreateTaskCommand{}, errors.Wrap(ErrValidationFailed, err.Error())
+		return Command{}, errors.Wrap(ErrValidationFailed, err.Error())
 	}
 
 	return ctc, nil
-}
-
-type GetTaskStatusQuery struct {
-	TaskID string
 }

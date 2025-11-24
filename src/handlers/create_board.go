@@ -20,7 +20,7 @@ type (
 	}
 
 	CreateBoardUseCase interface {
-		Handle(cmd createboard.CreateBoardCommand, ctx context.Context) (string, error)
+		Handle(ctx context.Context, cmd createboard.Command) (string, error)
 	}
 )
 
@@ -39,13 +39,13 @@ func (h *HttpHandler) CreateBoard(c *gin.Context) {
 		NewErrorResponse(c, http.StatusBadRequest, "invalid request")
 		return
 	}
-	cmd, err := createboard.NewCreateBoardCommand(req.Name, req.ShortName)
+	cmd, err := createboard.NewCommand(req.Name, req.ShortName)
 	if err != nil {
 		NewErrorResponse(c, http.StatusBadRequest, "failed to create command")
 		return
 	}
 
-	boardID, err := h.createBoardUC.Handle(cmd, c.Request.Context())
+	boardID, err := h.createBoardUC.Handle(c.Request.Context(), cmd)
 	if err != nil {
 		switch {
 		case errors.Is(err, createboard.ErrInvalidName):

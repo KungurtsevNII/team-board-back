@@ -26,11 +26,10 @@ type (
 	}
 
 	GetBoardColumn struct {
-		ID       uuid.UUID      `json:"id"`
-		BoardID  uuid.UUID      `json:"board_id"`
-		OrderNum int64          `json:"order_num"`
-		Name     string         `json:"name"`
-		Tasks    []GetBoardTask `json:"tasks"`
+		ID       uuid.UUID `json:"id"`
+		BoardID  uuid.UUID `json:"board_id"`
+		OrderNum int64     `json:"order_num"`
+		Name     string    `json:"name"`
 	}
 
 	GetBoardTask struct {
@@ -42,7 +41,7 @@ type (
 	}
 
 	GetBoardUseCase interface {
-		Handle(ctx context.Context, cmd getboard.GetBoardCommand) (domain.Board, error)
+		Handle(ctx context.Context, cmd getboard.Query) (*domain.Board, error)
 	}
 )
 
@@ -53,7 +52,7 @@ func (h *HttpHandler) GetBoard(c *gin.Context) {
 	log.Info(c.Request.URL.Path)
 
 	id := c.Param("id")
-	cmd, err := getboard.NewGetBoardCommand(id)
+	cmd, err := getboard.NewQuery(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -63,11 +62,11 @@ func (h *HttpHandler) GetBoard(c *gin.Context) {
 	board, err := h.getBoardUC.Handle(c.Request.Context(), cmd)
 	if err != nil {
 		switch {
-		case errors.Is(err, domain.ErrInvalidID):
+		case errors.Is(err, getboard.ErrInvalidID):
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": err.Error(),
 			})
-		case errors.Is(err, domain.ErrBoardNotFound):
+		case errors.Is(err, getboard.ErrBoardNotFound):
 			c.JSON(http.StatusNotFound, gin.H{
 				"error": err.Error(),
 			})
@@ -78,19 +77,37 @@ func (h *HttpHandler) GetBoard(c *gin.Context) {
 		}
 	}
 
-	columns := make([]GetBoardColumn, len(board.Columns))
-	for i, col := range board.Columns {
+	columns := dtoColumnsToResp(board.Columns)
+	tasks := dtoTasksToResp(board.Tasks)
+
+	resp := GetBoardBoard{
+		Name:      board.Name,
+		ShortName: board.ShortName,
+		Columns:   columns,
+		Tasks:     tasks,
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": resp,
+	})
+}
+
+func dtoColumnsToResp(dtoCol []domain.Column) []GetBoardColumn {
+	columns := make([]GetBoardColumn, len(dtoCol))
+	for i, col := range dtoCol {
 		columns[i] = GetBoardColumn{
 			ID:       col.ID,
 			BoardID:  col.BoardID,
 			OrderNum: col.OrderNum,
 			Name:     col.Name,
-			Tasks:    []GetBoardTask{},
 		}
 	}
+	return columns
+}
 
-	tasks := make([]GetBoardTask, len(board.Tasks))
-	for i, task := range board.Tasks {
+func dtoTasksToResp(dtoTasks []domain.Task) []GetBoardTask {
+	tasks := make([]GetBoardTask, len(dtoTasks))
+	for i, task := range dtoTasks {
 		tasks[i] = GetBoardTask{
 			ID:       task.ID,
 			ColumnID: task.ColumnID,
@@ -99,14 +116,5 @@ func (h *HttpHandler) GetBoard(c *gin.Context) {
 			Title:    task.Title,
 		}
 	}
-
-	resp := GetBoardBoard{
-		Name:      board.Name,
-		ShortName: board.ShortName,
-		Columns:   columns,
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"data": resp,
-	})
+	return tasks
 }

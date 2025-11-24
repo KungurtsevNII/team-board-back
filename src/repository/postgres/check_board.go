@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (r Repository) CheckBoard(id string, ctx context.Context) bool {
+func (r Repository) CheckBoard(ctx context.Context, id string) bool {
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return false

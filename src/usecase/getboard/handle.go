@@ -7,7 +7,7 @@ import (
 )
 
 type Repo interface {
-	GetBoard(ctx context.Context, ID string) (domain.Board, error)
+	GetBoard(ctx context.Context, ID string) (*domain.Board, error)
 }
 
 type UC struct {
@@ -20,12 +20,12 @@ func NewUC(repo Repo) *UC {
 	}
 }
 
-func (uc *UC) Handle(ctx context.Context, cmd GetBoardCommand) (domain.Board, error) {
+func (uc *UC) Handle(ctx context.Context, quer Query) (*domain.Board, error) {
 	const op = "getboard.Handle"
 
-	board, err := uc.repo.GetBoard(ctx, cmd.ID)
+	board, err := uc.repo.GetBoard(ctx, quer.ID)
 	if err != nil {
-		return domain.Board{}, errors.Wrap(err, op)
+		return nil, errors.Wrap(err, op)
 	}
 	return board, nil
 }

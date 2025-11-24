@@ -2,18 +2,19 @@ package postgres
 
 import (
 	"context"
-	"errors"
 
 	"github.com/KungurtsevNII/team-board-back/src/domain"
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/pkg/errors"
 )
 
-func (r Repository) GetBoard(ctx context.Context, ID string) (domain.Board, error) {
+func (r Repository) GetBoard(ctx context.Context, ID string) (*domain.Board, error) {
+	const op = "postgres.GetBoard"
 	uid, err := uuid.Parse(ID)
 	if err != nil {
-		return domain.Board{}, domain.ErrInvalidID
+		return nil, errors.Wrap(err, op)
 	}
 
 	var board domain.Board
@@ -24,29 +25,21 @@ func (r Repository) GetBoard(ctx context.Context, ID string) (domain.Board, erro
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
-			return domain.Board{}, domain.ErrBoardNotFound
+			return nil, errors.Wrap(err, op)
 		}
-		return domain.Board{}, err
+		return nil, err
 	}
 
-	board.Columns = make([]domain.Column, 0)
-	err = pgxscan.Select(ctx, r.pool, &board.Columns,
-		`SELECT id, board_id, order_num, name 
-		FROM columns WHERE board_id = $1 
-		ORDER BY order_num;`, uid)
+	board.Columns, err = r.GetColumns(ctx, ID)
 	if err != nil {
-		return domain.Board{}, err
+		return nil, errors.Wrap(err, op)
 	}
 
-	board.Tasks = make([]domain.Task, 0)
-	err = pgxscan.Select(ctx, r.pool, &board.Tasks,
-		`SELECT id, column_id, board_id, number, title 
-		FROM tasks WHERE board_id = $1 
-		ORDER BY number;`, uid)
+	board.Tasks, err = r.GetTasks(ctx, ID)
 	if err != nil {
-		return domain.Board{}, err
+		return nil, errors.Wrap(err, op)
 	}
 
-	return board, nil
+	return &board, nil
 
 }
