@@ -15,6 +15,7 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/middlewares"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 
 	"github.com/KungurtsevNII/team-board-back/docs"
 	swaggerFiles "github.com/swaggo/files"
@@ -51,7 +52,6 @@ func initAndStartHTTPServer(
 	router := gin.Default()
 	router.Use(middlewares.RequestLogger()) //Логирование запросов до основной ручки
 
-	//Это нужно для того чтобы фронт мог достучаться, пока AllowOrigins: []string{"*"}, но потом это нужно поменять на хост фронта
 	//TODO: Поменять AllowOrigins: []string{"*"}, на хост фронта
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},                                                // Разрешенные источники
@@ -62,7 +62,6 @@ func initAndStartHTTPServer(
 		MaxAge:           12 * time.Hour,                                               // Время кэширования preflight-запросов
 	}))
 
-	//Загрузка swagger
 	docs.SwaggerInfo.BasePath = mainPath
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -100,7 +99,7 @@ func initAndStartHTTPServer(
 
 	go func() {
 		if err := s.router.Run(":" + strconv.Itoa(cfg.HttpConfig.Port)); err != nil {
-			httpErrCh <- fmt.Errorf("%s: %w", op, err)
+			httpErrCh <- errors.Wrap(err, op)
 		}
 	}()
 
