@@ -25,7 +25,19 @@ definitions:
     type: object
   handlers.CreateBoardResponce:
     properties:
+      column:
+        $ref: '#/definitions/handlers.CreateColumnResponse'
+      created_at:
+        type: string
+      deleted_at:
+        type: string
       id:
+        type: string
+      name:
+        type: string
+      short_name:
+        type: string
+      updated_at:
         type: string
     type: object
   handlers.CreateColumnRequest:
@@ -277,6 +289,43 @@ paths:
       tags:
       - Tasks
   /v1/tasks/{task_id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID задачи
+        in: path
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "408":
+          description: Request Timeout
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Удаление задачи по id
+      tags:
+      - Tasks
     get:
       consumes:
       - application/json

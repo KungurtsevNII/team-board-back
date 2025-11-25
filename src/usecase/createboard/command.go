@@ -2,10 +2,9 @@ package createboard
 
 import "regexp"
 
-// todo команда, без имени паккета. во всех командах
 type Command struct {
-	Name      string
-	ShortName string
+	Name       string
+	ShortName  string
 }
 
 var (
@@ -13,17 +12,10 @@ var (
 )
 
 func NewCommand(name string, shortName string) (Command, error) {
-	if name == "" {
-		return Command{}, ErrEmptyName
-	}
-	if len(name) > 100 {
+	if len(name) > 100 || name == "" {
 		return Command{}, ErrInvalidName
 	}
-
-	if shortName == "" {
-		return Command{}, ErrInvalidShortName
-	}
-	if !ShortNameRegex.MatchString(shortName) {
+	if shortName == "" || !ShortNameRegex.MatchString(shortName) {
 		return Command{}, ErrInvalidShortName
 	}
 
