@@ -41,7 +41,12 @@ func (uc *UC) Handle(ctx context.Context, cmd Command) (*domain.Board, error) {
 		return nil, errors.Wrap(ErrCreateBoard, err.Error())
 	}
 
-	err = uc.repo.CreateColumn(ctx, &board.FirstColumn)
+	col, err := board.GetFirstColumn()
+	if err != nil {
+		return nil, errors.Wrap(ErrCreateColumnUnknown, err.Error())
+	}
+
+	err = uc.repo.CreateColumn(ctx, &col)
 	if err != nil {
 		return nil, errors.Wrap(ErrCreateColumnUnknown, err.Error())
 	}

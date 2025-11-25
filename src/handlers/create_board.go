@@ -94,18 +94,27 @@ func (h *HttpHandler) CreateBoard(c *gin.Context) {
 		return
 	}
 
+	column, err := board.GetFirstColumn()
+	if err != nil {
+		log.Warn("failed to get first column",
+			slog.String("err", err.Error()),
+			slog.Any("board", board))
+		NewErrorResponse(c, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
 	resp := CreateBoardResponce{
 		ID:        board.ID.String(),
 		Name:      board.Name,
 		ShortName: board.ShortName,
 		Ccr: CreateColumnResponse{
-			ID:        board.FirstColumn.ID.String(),
-			BoardID:   board.FirstColumn.BoardID.String(),
-			Name:      board.FirstColumn.Name,
-			OrderNum:  board.FirstColumn.OrderNum,
-			CreatedAt: board.FirstColumn.CreatedAt,
-			UpdatedAt: board.FirstColumn.UpdatedAt,
-			DeletedAt: board.FirstColumn.DeletedAt,
+			ID:        column.ID.String(),
+			BoardID:   column.BoardID.String(),
+			Name:      column.Name,
+			OrderNum:  column.OrderNum,
+			CreatedAt: column.CreatedAt,
+			UpdatedAt: column.UpdatedAt,
+			DeletedAt: column.DeletedAt,
 		},
 		CreatedAt: board.CreatedAt,
 		UpdatedAt: board.UpdatedAt,
