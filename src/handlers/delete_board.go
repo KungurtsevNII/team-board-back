@@ -38,13 +38,9 @@ func (h *HttpHandler) DeleteBoard(c *gin.Context) {
 	log := slog.Default()
 	log.With("op", op)
 
-	var req DeleteBoardRequest
-	if err := c.BindJSON(&req); err != nil {
-		NewErrorResponse(c, http.StatusBadRequest, "invalid request body")
-		return
-	}
+	id := c.Param("id")
 
-	cmd, err := deleteboard.NewCommand(req.ID)
+	cmd, err := deleteboard.NewCommand(id)
 	if err != nil {
 		NewErrorResponse(c, http.StatusBadRequest, "failed to create command")
 		return
