@@ -12,6 +12,7 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createboard"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createcolumn"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createtask"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/deletetask"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/getboard"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/getboards"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/gettask"
@@ -44,6 +45,7 @@ func main() {
 		createtask.NewUC(rep),
 		getboards.NewUC(rep),
 		gettask.NewUC(rep),
+		deletetask.NewUC(rep),
 	)
 
 	log.Info("repository connected", slog.String("path", cfg.PostgresConfig.Host))

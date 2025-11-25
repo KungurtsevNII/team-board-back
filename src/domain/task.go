@@ -45,3 +45,8 @@ func NewTask(
 		DeletedAt:   nil,
 	}, nil
 }
+
+func (c *Task) Delete() {
+	now := time.Now().UTC()
+	c.DeletedAt = &now
+}
