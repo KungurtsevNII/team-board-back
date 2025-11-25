@@ -369,7 +369,25 @@ const docTemplate = `{
         "handlers.CreateBoardResponce": {
             "type": "object",
             "properties": {
+                "column": {
+                    "$ref": "#/definitions/handlers.CreateColumnResponse"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
                 "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "short_name": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }

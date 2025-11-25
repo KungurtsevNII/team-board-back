@@ -61,6 +61,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pashagolub/pgxmock/v4 v4.9.0
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
+	github.com/pkg/errors v0.9.1
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/quic-go/quic-go v0.54.0 // indirect
 	github.com/swaggo/files v1.0.1

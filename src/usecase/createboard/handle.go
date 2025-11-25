@@ -2,6 +2,7 @@ package createboard
 
 import (
 	"context"
+
 	"github.com/KungurtsevNII/team-board-back/src/domain"
 	"github.com/pkg/errors"
 )
@@ -9,6 +10,10 @@ import (
 type Repo interface {
 	CheckBoard(ctx context.Context, shortName string) bool
 	CreateBoard(ctx context.Context, board domain.Board) error
+	CreateColumn(
+		ctx context.Context,
+		column *domain.Column,
+	) (err error)
 }
 
 type UC struct {
@@ -21,20 +26,30 @@ func NewUC(repo Repo) *UC {
 	}
 }
 
-func (uc *UC) Handle(ctx context.Context, cmd Command) (string, error) {
+func (uc *UC) Handle(ctx context.Context, cmd Command) (*domain.Board, error) {
 	if uc.repo.CheckBoard(ctx, cmd.ShortName) {
-		return "", ErrBoardIsExists
+		return nil, ErrBoardIsExists
 	}
 
 	board, err := domain.NewBoard(cmd.Name, cmd.ShortName)
 	if err != nil {
-		return "", errors.Wrap(ErrNewBoardFailed, err.Error())
+		return nil, errors.Wrap(ErrValidationFailed, err.Error())
 	}
 
 	err = uc.repo.CreateBoard(ctx, board)
 	if err != nil {
-		return "", errors.Wrap(ErrCreateBoard, err.Error())
+		return nil, errors.Wrap(ErrCreateBoard, err.Error())
 	}
 
-	return board.ID.String(), nil
+	col, err := board.GetFirstColumn()
+	if err != nil {
+		return nil, errors.Wrap(ErrCreateColumnUnknown, err.Error())
+	}
+
+	err = uc.repo.CreateColumn(ctx, &col)
+	if err != nil {
+		return nil, errors.Wrap(ErrCreateColumnUnknown, err.Error())
+	}
+
+	return &board, nil
 }
