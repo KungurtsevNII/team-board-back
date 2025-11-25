@@ -2,7 +2,6 @@ package createboard
 
 import "regexp"
 
-// todo команда, без имени паккета. во всех командах
 type Command struct {
 	Name      string
 	ShortName string

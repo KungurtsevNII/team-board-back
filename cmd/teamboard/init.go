@@ -90,6 +90,7 @@ func initAndStartHTTPServer(
 		v1Group.POST("/tasks", handlers.CreateTask)
 		v1Group.GET("/tasks/:task_id", handlers.GetTask)
 		v1Group.GET("/boards", handlers.GetBoards)
+		v1Group.GET("/boards/:id", handlers.GetBoard)
 	}
 
 	log.Info("http server is running", slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),

@@ -7,7 +7,6 @@ import (
 
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createboard"
 	"github.com/gin-gonic/gin"
-	"log/slog"
 )
 
 type (
@@ -35,10 +34,6 @@ type (
 // @Failure     400,408,409,500,503  {object}  ErrorResponse
 // @Router /v1/boards [POST]
 func (h *HttpHandler) CreateBoard(c *gin.Context) {
-	const op = "handlers.CreateBoard"
-	log := slog.Default()
-	log.With("op", op)
-
 	var req CreateBoardReqest
 	if err := c.BindJSON(&req); err != nil {
 		NewErrorResponse(c, http.StatusBadRequest, "invalid request")

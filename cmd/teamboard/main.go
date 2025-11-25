@@ -12,6 +12,7 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createboard"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createcolumn"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createtask"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/getboard"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/getboards"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/gettask"
 	"github.com/sytallax/prettylog"
@@ -39,6 +40,7 @@ func main() {
 		&cfg.HttpConfig,
 		createcolumn.NewUC(rep),
 		createboard.NewUC(rep),
+		getboard.NewUC(rep),
 		createtask.NewUC(rep),
 		getboards.NewUC(rep),
 		gettask.NewUC(rep),

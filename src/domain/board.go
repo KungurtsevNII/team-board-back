@@ -20,6 +20,8 @@ type Board struct {
 	CreatedAt time.Time
 	DeletedAt *time.Time
 	UpdatedAt time.Time
+	Columns   []Column
+	Tasks     []Task
 }
 
 func NewBoard(name string, shortName string) (Board, error) {
