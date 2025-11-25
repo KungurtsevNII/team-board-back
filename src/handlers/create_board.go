@@ -13,9 +13,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const(
-	nameOfFirstColumn = "TODO"
-)
 type (
 	CreateBoardReqest struct {
 		Name      string `json:"name"`
@@ -33,7 +30,7 @@ type (
 	}
 
 	CreateBoardUseCase interface {
-		Handle(ctx context.Context, cmd createboard.Command) (*domain.Board, *domain.Column, error)
+		Handle(ctx context.Context, cmd createboard.Command) (*domain.Board, error)
 	}
 )
 
@@ -56,23 +53,16 @@ func (h *HttpHandler) CreateBoard(c *gin.Context) {
 		NewErrorResponse(c, http.StatusBadRequest, "invalid request")
 		return
 	}
-	cmd, err := createboard.NewCommand(req.Name, req.ShortName, nameOfFirstColumn)
+	cmd, err := createboard.NewCommand(req.Name, req.ShortName)
 	if err != nil {
 		log.Warn("failed to create command",
 			slog.String("err", err.Error()),
 			slog.Any("request", req))
-		switch {
-		case errors.Is(err, createboard.ErrInvalidName):
-			NewErrorResponse(c, http.StatusBadRequest, "invalid name")
-		case errors.Is(err, createboard.ErrInvalidShortName):
-			NewErrorResponse(c, http.StatusBadRequest, "invalid short name")
-		default:
-			NewErrorResponse(c, http.StatusInternalServerError, "internal server error")
-		}
+		NewErrorResponse(c, http.StatusBadRequest, "failed to create command")
 		return
 	}
 
-	board, column, err := h.createBoardUC.Handle(c.Request.Context(), cmd)
+	board, err := h.createBoardUC.Handle(c.Request.Context(), cmd)
 	if err != nil {
 		log.Warn("failed to create board",
 			slog.String("err", err.Error()),
@@ -109,13 +99,13 @@ func (h *HttpHandler) CreateBoard(c *gin.Context) {
 		Name:      board.Name,
 		ShortName: board.ShortName,
 		Ccr: CreateColumnResponse{
-			ID:        column.ID.String(),
-			BoardID:   column.BoardID.String(),
-			Name:      column.Name,
-			OrderNum:  column.OrderNum,
-			CreatedAt: column.CreatedAt,
-			UpdatedAt: column.UpdatedAt,
-			DeletedAt: column.DeletedAt,
+			ID:        board.FirstColumn.ID.String(),
+			BoardID:   board.FirstColumn.BoardID.String(),
+			Name:      board.FirstColumn.Name,
+			OrderNum:  board.FirstColumn.OrderNum,
+			CreatedAt: board.FirstColumn.CreatedAt,
+			UpdatedAt: board.FirstColumn.UpdatedAt,
+			DeletedAt: board.FirstColumn.DeletedAt,
 		},
 		CreatedAt: board.CreatedAt,
 		UpdatedAt: board.UpdatedAt,
