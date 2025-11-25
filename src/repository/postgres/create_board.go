@@ -3,15 +3,17 @@ package postgres
 import (
 	"context"
 
+	"github.com/pkg/errors"
+
 	"github.com/KungurtsevNII/team-board-back/src/domain"
 )
 
-func (r Repository) CreateBoard(board domain.Board, ctx context.Context) error {
-	const sql = `
-		INSERT INTO boards (id, name, short_name, created_at, updated_at, deleted_at)
-		VALUES ($1, $2, $3, $4, $5, $6)
-	`
-	_, err := r.pool.Exec(ctx, sql,
+func (r Repository) CreateBoard(ctx context.Context, board domain.Board) error {
+	op := "postgres.CreateBoard"
+
+	_, err := r.pool.Exec(ctx,
+		`INSERT INTO boards (id, name, short_name, created_at, updated_at, deleted_at)
+		VALUES ($1, $2, $3, $4, $5, $6)`,
 		board.ID,
 		board.Name,
 		board.ShortName,
@@ -20,7 +22,7 @@ func (r Repository) CreateBoard(board domain.Board, ctx context.Context) error {
 		board.DeletedAt,
 	)
 	if err != nil {
-		return err
+		return errors.Wrap(err, op)
 	}
 	return nil
 }

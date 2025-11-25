@@ -2,7 +2,7 @@ package createboard
 
 import "regexp"
 
-type CreateBoardCommand struct {
+type Command struct {
 	Name      string
 	ShortName string
 }
@@ -11,22 +11,22 @@ var (
 	ShortNameRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]{2,10}$`)
 )
 
-func NewCreateBoardCommand(name string, shortName string) (CreateBoardCommand, error) {
+func NewCommand(name string, shortName string) (Command, error) {
 	if name == "" {
-		return CreateBoardCommand{}, EmptyNameErr
+		return Command{}, ErrEmptyName
 	}
 	if len(name) > 100 {
-		return CreateBoardCommand{}, InvalidNameErr
+		return Command{}, ErrInvalidName
 	}
 
 	if shortName == "" {
-		return CreateBoardCommand{}, InvalidShortNameErr
+		return Command{}, ErrInvalidShortName
 	}
 	if !ShortNameRegex.MatchString(shortName) {
-		return CreateBoardCommand{}, InvalidShortNameErr
+		return Command{}, ErrInvalidShortName
 	}
 
-	return CreateBoardCommand{
+	return Command{
 		Name:      name,
 		ShortName: shortName,
 	}, nil

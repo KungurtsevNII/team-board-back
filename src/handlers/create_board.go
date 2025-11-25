@@ -7,7 +7,6 @@ import (
 
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createboard"
 	"github.com/gin-gonic/gin"
-	"log/slog"
 )
 
 type (
@@ -21,7 +20,7 @@ type (
 	}
 
 	CreateBoardUseCase interface {
-		Handle(cmd createboard.CreateBoardCommand, ctx context.Context) (string, error)
+		Handle(ctx context.Context, cmd createboard.Command) (string, error)
 	}
 )
 
@@ -35,32 +34,28 @@ type (
 // @Failure     400,408,409,500,503  {object}  ErrorResponse
 // @Router /v1/boards [POST]
 func (h *HttpHandler) CreateBoard(c *gin.Context) {
-	const op = "handlers.CreateBoard"
-	log := slog.Default()
-	log.With("op", op)
-
 	var req CreateBoardReqest
 	if err := c.BindJSON(&req); err != nil {
 		NewErrorResponse(c, http.StatusBadRequest, "invalid request")
 		return
 	}
-	cmd, err := createboard.NewCreateBoardCommand(req.Name, req.ShortName)
+	cmd, err := createboard.NewCommand(req.Name, req.ShortName)
 	if err != nil {
 		NewErrorResponse(c, http.StatusBadRequest, "failed to create command")
 		return
 	}
 
-	boardID, err := h.createBoardUC.Handle(cmd, c.Request.Context())
+	boardID, err := h.createBoardUC.Handle(c.Request.Context(), cmd)
 	if err != nil {
 		switch {
-		case errors.Is(err, createboard.InvalidNameErr):
-			NewErrorResponse(c, http.StatusBadRequest, createboard.InvalidNameErr.Error())
-		case errors.Is(err, createboard.InvalidShortNameErr):
-			NewErrorResponse(c, http.StatusBadRequest, createboard.InvalidNameErr.Error())
-		case errors.Is(err, createboard.EmptyNameErr):
-			NewErrorResponse(c, http.StatusBadRequest, createboard.EmptyNameErr.Error())
-		case errors.Is(err, createboard.BoardIsExistsErr):
-			NewErrorResponse(c, http.StatusConflict, createboard.BoardIsExistsErr.Error())
+		case errors.Is(err, createboard.ErrInvalidName):
+			NewErrorResponse(c, http.StatusBadRequest, createboard.ErrInvalidName.Error())
+		case errors.Is(err, createboard.ErrInvalidShortName):
+			NewErrorResponse(c, http.StatusBadRequest, createboard.ErrInvalidName.Error())
+		case errors.Is(err, createboard.ErrEmptyName):
+			NewErrorResponse(c, http.StatusBadRequest, createboard.ErrEmptyName.Error())
+		case errors.Is(err, createboard.ErrBoardIsExists):
+			NewErrorResponse(c, http.StatusConflict, createboard.ErrBoardIsExists.Error())
 		case errors.Is(err, context.Canceled):
 			NewErrorResponse(c, http.StatusRequestTimeout, "request canceled")
 		case errors.Is(err, context.DeadlineExceeded):

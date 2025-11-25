@@ -42,7 +42,7 @@ func NewTask(
 		Checklists:  checklists,
 		CreatedAt:   time.Now().UTC(),
 		UpdatedAt:   time.Now().UTC(),
-		DeletedAt:    nil,
+		DeletedAt:   nil,
 	}, nil
 }
 
