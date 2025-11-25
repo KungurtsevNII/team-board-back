@@ -10,14 +10,13 @@ import (
 
 	"github.com/KungurtsevNII/team-board-back/src/domain"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createboard"
-	"github.com/KungurtsevNII/team-board-back/src/usecase/createcolumn"
 	"github.com/gin-gonic/gin"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/createcolumn"
 )
 
-const (
+const(
 	nameOfFirstColumn = "TODO"
 )
-
 type (
 	CreateBoardReqest struct {
 		Name      string `json:"name"`
@@ -28,14 +27,14 @@ type (
 		ID        string               `json:"id"`
 		Name      string               `json:"name"`
 		ShortName string               `json:"short_name"`
-		Ccr       CreateColumnResponse `json:"column"` //CreateColumnResponse лежит в handle/create_column.go, я не знаю, стоит ли выносить куда-то
+		Ccr       CreateColumnResponse `json:"column"`
 		CreatedAt time.Time            `json:"created_at"`
 		UpdatedAt time.Time            `json:"updated_at"`
 		DeletedAt *time.Time           `json:"deleted_at"`
 	}
 
 	CreateBoardUseCase interface {
-		Handle(cmd createboard.CreateBoardCommand, ctx context.Context) (*domain.Board, error)
+		Handle(ctx context.Context, cmd createboard.Command) (*domain.Board, error)
 	}
 )
 
@@ -58,8 +57,7 @@ func (h *HttpHandler) CreateBoard(c *gin.Context) {
 		NewErrorResponse(c, http.StatusBadRequest, "invalid request")
 		return
 	}
-
-	bcmd, err := createboard.NewCreateBoardCommand(req.Name, req.ShortName)
+	cmd, err := createboard.NewCommand(req.Name, req.ShortName)
 	if err != nil {
 		log.Warn("failed to create command",
 			slog.String("err", err.Error()),
@@ -79,18 +77,20 @@ func (h *HttpHandler) CreateBoard(c *gin.Context) {
 		return
 	}
 
-	board, err := h.createBoardUC.Handle(bcmd, c.Request.Context())
+	board, err := h.createBoardUC.Handle(c.Request.Context(), cmd)
 	if err != nil {
 		log.Warn("failed to create board",
 			slog.String("err", err.Error()),
-			slog.Any("cmd", bcmd))
+			slog.Any("cmd", cmd))
 		switch {
-		case errors.Is(err, createboard.ErrValidationFaild):
-			NewErrorResponse(c, http.StatusBadRequest, "validation failed")
+		case errors.Is(err, createboard.ErrInvalidName):
+			NewErrorResponse(c, http.StatusBadRequest, createboard.ErrInvalidName.Error())
+		case errors.Is(err, createboard.ErrInvalidShortName):
+			NewErrorResponse(c, http.StatusBadRequest, createboard.ErrInvalidName.Error())
+		case errors.Is(err, createboard.ErrEmptyName):
+			NewErrorResponse(c, http.StatusBadRequest, createboard.ErrEmptyName.Error())
 		case errors.Is(err, createboard.ErrBoardIsExists):
-			NewErrorResponse(c, http.StatusBadRequest, "board already exists")
-		case errors.Is(err, createboard.ErrCreateBoardFailed):
-			NewErrorResponse(c, http.StatusInternalServerError, "failed to create board")
+			NewErrorResponse(c, http.StatusConflict, createboard.ErrBoardIsExists.Error())
 		case errors.Is(err, context.Canceled):
 			NewErrorResponse(c, http.StatusRequestTimeout, "request canceled")
 		case errors.Is(err, context.DeadlineExceeded):
@@ -101,7 +101,7 @@ func (h *HttpHandler) CreateBoard(c *gin.Context) {
 		return
 	}
 
-	ccmd, err := createcolumn.NewCreateColumnCommand(board.ID.String(), nameOfFirstColumn)
+	ccmd, err := createcolumn.NewCommand(board.ID.String(), nameOfFirstColumn)
 	if err != nil {
 		log.Warn("failed to create command",
 			slog.String("err", err.Error()),

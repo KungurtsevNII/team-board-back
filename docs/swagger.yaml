@@ -1,5 +1,21 @@
 basePath: /api
 definitions:
+  handlers.CheckListItemDto:
+    properties:
+      completed:
+        type: boolean
+      title:
+        type: string
+    type: object
+  handlers.ChecklistDto:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/handlers.CheckListItemDto'
+        type: array
+      title:
+        type: string
+    type: object
   handlers.CreateBoardReqest:
     properties:
       name:
@@ -10,10 +26,7 @@ definitions:
   handlers.CreateBoardResponce:
     properties:
       column:
-        allOf:
-        - $ref: '#/definitions/handlers.CreateColumnResponse'
-        description: CreateColumnResponse лежит в handle/create_column.go, я не знаю,
-          стоит ли выносить куда-то
+        $ref: '#/definitions/handlers.CreateColumnResponse'
       created_at:
         type: string
       deleted_at:
@@ -49,6 +62,54 @@ definitions:
       updated_at:
         type: string
     type: object
+  handlers.CreateTaskRequest:
+    properties:
+      board_id:
+        type: string
+      checklists:
+        items:
+          $ref: '#/definitions/handlers.ChecklistDto'
+        type: array
+      column_id:
+        type: string
+      description:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+    type: object
+  handlers.CreateTaskResponse:
+    properties:
+      board_id:
+        type: string
+      checklists:
+        items:
+          $ref: '#/definitions/handlers.ChecklistDto'
+        type: array
+      column_id:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      number:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
   handlers.Error:
     properties:
       code:
@@ -60,6 +121,35 @@ definitions:
     properties:
       error:
         $ref: '#/definitions/handlers.Error'
+    type: object
+  handlers.GetTaskResponse:
+    properties:
+      board_id:
+        type: string
+      checklists:
+        items:
+          $ref: '#/definitions/handlers.ChecklistDto'
+        type: array
+      column_id:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      number:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
     type: object
 externalDocs:
   description: OpenAPI
@@ -157,6 +247,87 @@ paths:
       summary: Создание новой колонки
       tags:
       - Columns
+  /v1/tasks:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: request на создание таски
+        in: body
+        name: createTaskRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.CreateTaskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "408":
+          description: Request Timeout
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Создание новой задачи
+      tags:
+      - Tasks
+  /v1/tasks/{task_id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID задачи
+        in: path
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.GetTaskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "408":
+          description: Request Timeout
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Получение задачи по ID
+      tags:
+      - Tasks
 securityDefinitions:
   BasicAuth:
     type: basic

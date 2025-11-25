@@ -11,6 +11,10 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/repository/postgres"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createboard"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createcolumn"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/createtask"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/getboard"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/getboards"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/gettask"
 	"github.com/sytallax/prettylog"
 )
 
@@ -21,8 +25,8 @@ const (
 )
 
 func main() {
-	cfg := config.MustLoad()    //Сделал другой инит конфига
-	log := setupLogger(cfg.Env) //И логгер читаемый
+	cfg := config.MustLoad()
+	log := setupLogger(cfg.Env)
 
 	log.Info("starting application", slog.String("env", cfg.Env))
 	log.Info("config", slog.Any("cfg", cfg))
@@ -36,6 +40,10 @@ func main() {
 		&cfg.HttpConfig,
 		createcolumn.NewUC(rep),
 		createboard.NewUC(rep),
+		getboard.NewUC(rep),
+		createtask.NewUC(rep),
+		getboards.NewUC(rep),
+		gettask.NewUC(rep),
 	)
 
 	log.Info("repository connected", slog.String("path", cfg.PostgresConfig.Host))

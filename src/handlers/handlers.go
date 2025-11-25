@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/KungurtsevNII/team-board-back/src/config"
@@ -15,18 +16,29 @@ type HttpHandler struct {
 	cfg            *config.HTTPConfig
 	createColumnUC CreateColumnUseCase
 	createBoardUC  CreateBoardUseCase
+	getBoardUC     GetBoardUseCase
+	createTaskUC   CreateTaskUseCase
+	getBoardsUC    GetBoardsUseCase
+	getTaskUC      GetTaskUseCase
 }
 
 func NewHttpHandler(
 	cfg *config.HTTPConfig,
-	columnUC CreateColumnUseCase,
+	createColumnUC CreateColumnUseCase,
 	createBoardUC CreateBoardUseCase,
-
+	getBoardUC GetBoardUseCase,
+	createTaskUC CreateTaskUseCase,
+	getboardsUC GetBoardsUseCase,
+	getTaskUC GetTaskUseCase,
 ) *HttpHandler {
 	return &HttpHandler{
 		cfg:            cfg,
-		createColumnUC: columnUC,
+		createColumnUC: createColumnUC,
 		createBoardUC:  createBoardUC,
+		getBoardUC:     getBoardUC,
+		createTaskUC:   createTaskUC,
+		getBoardsUC:    getboardsUC,
+		getTaskUC:      getTaskUC,
 	}
 }
 
@@ -34,15 +46,15 @@ type ErrorResponse struct {
 	Err Error `json:"error"`
 }
 
-type Error struct{
-	Code int `json:"code"`
+type Error struct {
+	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
 
-func NewErrorResponse(c *gin.Context,statusCode int, message string) {
+func NewErrorResponse(c *gin.Context, statusCode int, message string) {
 	err := ErrorResponse{
-		Err : Error{
-			Code: statusCode,
+		Err: Error{
+			Code:    statusCode,
 			Message: message,
 		},
 	}
@@ -50,9 +62,9 @@ func NewErrorResponse(c *gin.Context,statusCode int, message string) {
 }
 
 func (s *HttpHandler) Healthcheck(c *gin.Context) {
-	// const op = "handlers.Healthcheck"
-	// log := s.log.With("op", op, "method", c.Request.Method)
-	// log.Info(c.Request.URL.Path)
+	const op = "handlers.Healthcheck"
+	log := slog.Default().With("op", op)
+	log.Info("healthcheck endpoint called")
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": http.StatusOK,

@@ -7,8 +7,8 @@ import (
 )
 
 type Repo interface {
-	CheckBoard(shortName string, ctx context.Context) bool
-	CreateBoard(board domain.Board, ctx context.Context) error
+	CheckBoard(ctx context.Context, shortName string) bool
+	CreateBoard(ctx context.Context, board domain.Board) error
 }
 
 type UC struct {
@@ -21,19 +21,19 @@ func NewUC(repo Repo) *UC {
 	}
 }
 
-func (uc *UC) Handle(cmd CreateBoardCommand, ctx context.Context) (*domain.Board, error) {
-	if uc.repo.CheckBoard(cmd.ShortName, ctx) {
+func (uc *UC) Handle(ctx context.Context, cmd Command) (*domain.Board, error) {
+	if uc.repo.CheckBoard(ctx, cmd.ShortName) {
 		return nil, ErrBoardIsExists
 	}
 
 	board, err := domain.NewBoard(cmd.Name, cmd.ShortName)
 	if err != nil {
-		return nil, errors.Wrap(ErrValidationFaild, err.Error())
+		return nil, errors.Wrap(ErrNewBoardFailed, err.Error())
 	}
 
-	err = uc.repo.CreateBoard(board, ctx)
+	err = uc.repo.CreateBoard(ctx, board)
 	if err != nil {
-		return nil, errors.Wrap(ErrCreateBoardFailed, err.Error())
+		return nil, errors.Wrap(ErrCreateBoard, err.Error())
 	}
 
 	return &board, nil

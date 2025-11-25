@@ -15,10 +15,11 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/middlewares"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 
+	"github.com/KungurtsevNII/team-board-back/docs"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/KungurtsevNII/team-board-back/docs"
 )
 
 const (
@@ -51,7 +52,6 @@ func initAndStartHTTPServer(
 	router := gin.Default()
 	router.Use(middlewares.RequestLogger()) //Логирование запросов до основной ручки
 
-	//Это нужно для того чтобы фронт мог достучаться, пока AllowOrigins: []string{"*"}, но потом это нужно поменять на хост фронта
 	//TODO: Поменять AllowOrigins: []string{"*"}, на хост фронта
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},                                                // Разрешенные источники
@@ -62,7 +62,6 @@ func initAndStartHTTPServer(
 		MaxAge:           12 * time.Hour,                                               // Время кэширования preflight-запросов
 	}))
 
-	//Загрузка swagger
 	docs.SwaggerInfo.BasePath = mainPath
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -88,6 +87,10 @@ func initAndStartHTTPServer(
 	{
 		v1Group.POST("/boards/:board_id/columns", handlers.CreateColumn)
 		v1Group.POST("/boards", handlers.CreateBoard)
+		v1Group.POST("/tasks", handlers.CreateTask)
+		v1Group.GET("/tasks/:task_id", handlers.GetTask)
+		v1Group.GET("/boards", handlers.GetBoards)
+		v1Group.GET("/boards/:id", handlers.GetBoard)
 	}
 
 	log.Info("http server is running", slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
@@ -96,7 +99,7 @@ func initAndStartHTTPServer(
 
 	go func() {
 		if err := s.router.Run(":" + strconv.Itoa(cfg.HttpConfig.Port)); err != nil {
-			httpErrCh <- fmt.Errorf("%s: %w", op, err)
+			httpErrCh <- errors.Wrap(err, op)
 		}
 	}()
 

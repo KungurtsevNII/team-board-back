@@ -4,8 +4,10 @@ go 1.25.1
 
 require (
 	github.com/doug-martin/goqu/v9 v9.19.0
+	github.com/georgysavva/scany/v2 v2.1.4
 	github.com/gin-gonic/gin v1.11.0
 	github.com/google/uuid v1.6.0
+	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.11.1
 	github.com/swaggo/swag v1.16.6
 )
@@ -28,6 +30,8 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
+	github.com/kr/text v0.2.0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
