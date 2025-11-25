@@ -4,10 +4,13 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/KungurtsevNII/team-board-back/src/domain"
+	"github.com/jackc/pgx/v5"
 )
 
 type Repo interface {
-	DeleteTask(ctx context.Context, taskID uuid.UUID) error
+	GetTaskByID(ctx context.Context, taskID uuid.UUID) (*domain.Task, error)
+	UpdateTask(ctx context.Context, task *domain.Task) error
 }
 
 type UC struct {
@@ -21,8 +24,16 @@ func NewUC(repo Repo) *UC {
 }
 
 func (uc *UC) Handle(ctx context.Context, cmd Command) error{
-	//В удалениях вроде не возвращают ошибку при not found, поэтому и я не решил не возвращать
-	err := uc.repo.DeleteTask(ctx, cmd.TaskID)
+	dmn, err := uc.repo.GetTaskByID(ctx, cmd.TaskID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrTaskNotFound
+		}
+		return errors.Wrap(ErrGetTaskUnknown, err.Error())
+	}
+
+	dmn.Delete()
+	err = uc.repo.UpdateTask(ctx, dmn)
 	if err != nil {
 		return errors.Wrap(ErrDeleteTaskUnknown, err.Error())
 	}

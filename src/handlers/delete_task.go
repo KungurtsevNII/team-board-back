@@ -35,12 +35,7 @@ func (h *HttpHandler) DeleteTask(c *gin.Context) {
 	cmd, err := deletetask.NewCommand(taskID)
 	if err != nil {
 		log.Warn("failed to create command", "error", err)
-		switch {
-		case errors.Is(err, deletetask.ErrInvalidTaskID):
-			NewErrorResponse(c, http.StatusBadRequest, "invalid task id")
-		default:
-			NewErrorResponse(c, http.StatusBadRequest, "failed to create command")
-		}
+		NewErrorResponse(c, http.StatusBadRequest, "failed to create command")
 		return
 	}
 
@@ -49,6 +44,10 @@ func (h *HttpHandler) DeleteTask(c *gin.Context) {
 		switch {
 		case errors.Is(err, deletetask.ErrDeleteTaskUnknown):
 			NewErrorResponse(c, http.StatusInternalServerError, "failed to delete task")
+		case errors.Is(err, deletetask.ErrTaskNotFound):
+			NewErrorResponse(c, http.StatusNotFound, "task not found")
+		case errors.Is(err, deletetask.ErrGetTaskUnknown):
+			NewErrorResponse(c, http.StatusInternalServerError, "failed to get task")
 		case errors.Is(err, context.Canceled):
 			NewErrorResponse(c, http.StatusRequestTimeout, "request canceled")
 		case errors.Is(err, context.DeadlineExceeded):
