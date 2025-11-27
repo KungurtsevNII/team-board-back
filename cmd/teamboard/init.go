@@ -30,6 +30,7 @@ type HttpServer struct {
 	router   *gin.Engine
 	srv      *http.Server
 	handlers *handlers.HttpHandler
+	state    *middlewares.HealthState
 	cfg      *config.Config
 }
 
@@ -52,9 +53,8 @@ func initAndStartHTTPServer(
 	router := gin.Default()
 	router.Use(middlewares.RequestLogger()) //Логирование запросов до основной ручки
 
-	state := middlewares.NewHealthState()
+	state := middlewares.NewHealthState() //Состояние сервера
 	router.Use(middlewares.HealthMiddleware(state))
-	state.Ready = true //Все зависимости поднялись, поэтому реди
 
 	//TODO: Поменять AllowOrigins: []string{"*"}, на хост фронта
 	router.Use(cors.New(cors.Config{
@@ -79,6 +79,7 @@ func initAndStartHTTPServer(
 		srv:      srv,
 		handlers: handlers,
 		router:   router,
+		state: state,
 	}
 
 	//TODO: Добавить рекавери

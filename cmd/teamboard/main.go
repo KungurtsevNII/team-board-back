@@ -51,6 +51,7 @@ func main() {
 	log.Info("repository connected", slog.String("path", cfg.PostgresConfig.Host))
 
 	httpsrv, httpErrCh := initAndStartHTTPServer(cfg, handlers)
+	httpsrv.state.Ready = true //Все зависимости поднялись, поэтому реди
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
