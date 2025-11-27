@@ -7,11 +7,11 @@ import (
 )
 
 type ColumnRecord struct {
-	ID        uuid.UUID  `db:"id"`
+	ID        uuid.UUID  `db:"id" goqu:"skipupdate"`
 	BoardID   uuid.UUID  `db:"board_id"`
 	Name      string     `db:"name"`
 	OrderNum  int64      `db:"order_num"`
-	CreatedAt time.Time  `db:"created_at"`
+	CreatedAt time.Time  `db:"created_at" goqu:"skipupdate"`
 	DeletedAt *time.Time `db:"deleted_at"`
 	UpdatedAt time.Time  `db:"updated_at"`
 }
@@ -29,4 +29,3 @@ type TaskRecord struct {
 	UpdatedAt   time.Time  `db:"updated_at"`
 	DeletedAt   *time.Time `db:"deleted_at"`
 }
-

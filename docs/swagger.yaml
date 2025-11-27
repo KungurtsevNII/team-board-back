@@ -247,6 +247,48 @@ paths:
       summary: Создание новой колонки
       tags:
       - Columns
+  /v1/columns/{column_id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID колонки
+        in: path
+        name: column_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "408":
+          description: Request Timeout
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Удаление колонки по id
+      tags:
+      - Columns
   /v1/tasks:
     post:
       consumes:
