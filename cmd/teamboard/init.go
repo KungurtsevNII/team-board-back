@@ -52,6 +52,10 @@ func initAndStartHTTPServer(
 	router := gin.Default()
 	router.Use(middlewares.RequestLogger()) //Логирование запросов до основной ручки
 
+	state := middlewares.NewHealthState()
+	router.Use(middlewares.HealthMiddleware(state))
+	state.Ready = true //Все зависимости поднялись, поэтому реди
+
 	//TODO: Поменять AllowOrigins: []string{"*"}, на хост фронта
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},                                                // Разрешенные источники
@@ -80,8 +84,6 @@ func initAndStartHTTPServer(
 	//TODO: Добавить рекавери
 
 	mainGroup := router.Group(mainPath)
-
-	mainGroup.GET("/healthcheck", handlers.Healthcheck)
 
 	v1Group := mainGroup.Group("/v1")
 	{
