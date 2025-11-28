@@ -304,7 +304,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Полная информация об обновленной задаче",
                         "schema": {
                             "$ref": "#/definitions/handlers.MoveTaskResponse"
                         }
@@ -575,10 +575,40 @@ const docTemplate = `{
                 "board_id": {
                     "type": "string"
                 },
+                "checklists": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.ChecklistDto"
+                    }
+                },
                 "column_id": {
                     "type": "string"
                 },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
                 "id": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "integer"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }

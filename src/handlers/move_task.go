@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/KungurtsevNII/team-board-back/src/domain"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/movetask"
@@ -17,9 +18,17 @@ type (
 	}
 
 	MoveTaskResponse struct {
-		ID       string `json:"id"`
-		ColumnID string `json:"column_id"`
-		BoardID  string `json:"board_id"`
+		ID          string         `json:"id"`
+		ColumnID    string         `json:"column_id"`
+		BoardID     string         `json:"board_id"`
+		Number      int64          `json:"number"`
+		Title       string         `json:"title"`
+		Description *string        `json:"description"`
+		Tags        []string       `json:"tags"`
+		Checklists  []ChecklistDto `json:"checklists"`
+		CreatedAt   time.Time      `json:"created_at"`
+		UpdatedAt   time.Time      `json:"updated_at"`
+		DeletedAt   *time.Time     `json:"deleted_at"`
 	}
 
 	MoveTaskUseCase interface {
@@ -37,7 +46,7 @@ type (
 // @Produce json
 // @Param task_id path string true "ID задачи"
 // @Param moveTaskRequest body MoveTaskRequest true "request на перемещение задачи"
-// @Success 200 {object}  MoveTaskResponse
+// @Success 200 {object}  MoveTaskResponse "Полная информация об обновленной задаче"
 // @Failure     400,404,408,500,503  {object}  ErrorResponse
 // @Router /v1/tasks/{task_id}/move [PUT]
 func (h *HttpHandler) MoveTask(c *gin.Context) {
@@ -82,12 +91,6 @@ func (h *HttpHandler) MoveTask(c *gin.Context) {
 		switch {
 		case errors.Is(err, movetask.ErrTaskNotFound):
 			NewErrorResponse(c, http.StatusNotFound, "task not found")
-		case errors.Is(err, movetask.ErrColumnNotFound):
-			NewErrorResponse(c, http.StatusNotFound, "column not found")
-		case errors.Is(err, movetask.ErrColumnNotInBoard):
-			NewErrorResponse(c, http.StatusBadRequest, "column does not belong to task's board")
-		case errors.Is(err, movetask.ErrMoveTaskUnknown):
-			NewErrorResponse(c, http.StatusInternalServerError, "failed to move task")
 		case errors.Is(err, context.Canceled):
 			NewErrorResponse(c, http.StatusRequestTimeout, "request canceled")
 		case errors.Is(err, context.DeadlineExceeded):
@@ -98,11 +101,37 @@ func (h *HttpHandler) MoveTask(c *gin.Context) {
 		return
 	}
 
-	resp := MoveTaskResponse{
-		ID:       dmn.ID.String(),
-		ColumnID: dmn.ColumnID.String(),
-		BoardID:  dmn.BoardID.String(),
+	resp := taskDomainToMoveTaskResponse(dmn)
+	c.JSON(http.StatusOK, resp)
+}
+
+func taskDomainToMoveTaskResponse(task *domain.Task) *MoveTaskResponse {
+	checklistResp := make([]ChecklistDto, 0, len(task.Checklists))
+	for _, checklist := range task.Checklists {
+		checklistItemsResp := make([]CheckListItemDto, 0, len(checklist.Items))
+		for _, item := range checklist.Items {
+			checklistItemsResp = append(checklistItemsResp, CheckListItemDto{
+				Title:     item.Title,
+				Completed: item.Completed,
+			})
+		}
+		checklistResp = append(checklistResp, ChecklistDto{
+			Title: checklist.Title,
+			Items: checklistItemsResp,
+		})
 	}
 
-	c.JSON(http.StatusOK, resp)
+	return &MoveTaskResponse{
+		ID:          task.ID.String(),
+		ColumnID:    task.ColumnID.String(),
+		BoardID:     task.BoardID.String(),
+		Number:      task.Number,
+		Title:       task.Title,
+		Description: task.Description,
+		Tags:        task.Tags,
+		Checklists:  checklistResp,
+		CreatedAt:   task.CreatedAt,
+		UpdatedAt:   task.UpdatedAt,
+		DeletedAt:   task.DeletedAt,
+	}
 }

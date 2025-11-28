@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/KungurtsevNII/team-board-back/src/domain"
-	"github.com/KungurtsevNII/team-board-back/src/repository/postgres"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/pkg/errors"
 )
 
@@ -21,14 +21,16 @@ func NewUC(repo Repo) *UC {
 
 type Repo interface {
 	GetTaskByID(ctx context.Context, taskID uuid.UUID) (*domain.Task, error)
-	CheckColumnInBoard(ctx context.Context, boardID uuid.UUID, columnID uuid.UUID) (bool, error)
-	MoveTaskColumn(ctx context.Context, taskID uuid.UUID, columnID uuid.UUID) error
+	MoveTaskColumn(ctx context.Context, taskID uuid.UUID, columnID uuid.UUID) (*domain.Task, error)
 }
 
 func (uc *UC) Handle(ctx context.Context, cmd MoveTaskCommand) (*domain.Task, error) {
 	task, err := uc.repo.GetTaskByID(ctx, cmd.TaskID)
 	if err != nil {
-		return nil, ErrTaskNotFound
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTaskNotFound
+		}
+		return nil, errors.Wrap(err, "failed to get task")
 	}
 
 	if task.ColumnID == cmd.ColumnID {
@@ -37,23 +39,14 @@ func (uc *UC) Handle(ctx context.Context, cmd MoveTaskCommand) (*domain.Task, er
 
 	// TODO: Проверять существование колонки
 
-	// Проверяем, что целевая колонка принадлежит той же доске
-	ok, err := uc.repo.CheckColumnInBoard(ctx, task.BoardID, cmd.ColumnID)
+	// Получаем актуальное состояние после UPDATE
+	updatedTask, err := uc.repo.MoveTaskColumn(ctx, cmd.TaskID, cmd.ColumnID)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to check column in board")
-	}
-	if !ok {
-		return nil, ErrColumnNotInBoard
-	}
-
-	// Обновляем колонку задачи
-	if err := uc.repo.MoveTaskColumn(ctx, cmd.TaskID, cmd.ColumnID); err != nil {
-		if errors.Is(err, postgres.ErrTaskNotFoundOrDeleted) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrTaskNotFound
 		}
-		return nil, ErrMoveTaskUnknown
+		return nil, errors.Wrap(ErrMoveTaskUnknown, err.Error())
 	}
 
-	task.ColumnID = cmd.ColumnID
-	return task, nil
+	return updatedTask, nil
 }

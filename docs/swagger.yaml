@@ -150,9 +150,29 @@ definitions:
     properties:
       board_id:
         type: string
+      checklists:
+        items:
+          $ref: '#/definitions/handlers.ChecklistDto'
+        type: array
       column_id:
         type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      description:
+        type: string
       id:
+        type: string
+      number:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updated_at:
         type: string
     type: object
 externalDocs:
@@ -352,7 +372,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Полная информация об обновленной задаче
           schema:
             $ref: '#/definitions/handlers.MoveTaskResponse'
         "400":

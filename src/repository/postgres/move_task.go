@@ -4,12 +4,14 @@ import (
 	"context"
 	"time"
 
+	"github.com/KungurtsevNII/team-board-back/src/domain"
 	"github.com/doug-martin/goqu/v9"
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
-func (r Repository) MoveTaskColumn(ctx context.Context, taskID uuid.UUID, columnID uuid.UUID) error {
+func (r Repository) MoveTaskColumn(ctx context.Context, taskID uuid.UUID, columnID uuid.UUID) (*domain.Task, error) {
 	const op = "postgres.MoveTaskColumn"
 
 	now := time.Now().UTC()
@@ -22,22 +24,24 @@ func (r Repository) MoveTaskColumn(ctx context.Context, taskID uuid.UUID, column
 		Where(
 			goqu.C("id").Eq(taskID),
 			goqu.C("deleted_at").IsNull(),
-		)
+		).
+		Returning(goqu.Star())
 
 	sql, params, err := ds.ToSQL()
 	if err != nil {
-		return errors.Wrap(err, op)
+		return nil, errors.Wrap(err, op)
 	}
-	result, err := r.pool.Exec(ctx, sql, params...)
+
+	var task TaskRecord
+	err = pgxscan.Get(ctx, r.pool, &task, sql, params...)
 	if err != nil {
-		return errors.Wrap(err, op)
+		return nil, errors.Wrap(err, op)
 	}
 
-	// Проверяем, что задача действительно была обновлена
-	rowsAffected := result.RowsAffected()
-	if rowsAffected == 0 {
-		return ErrTaskNotFoundOrDeleted
+	dmn, err := task.toDomain()
+	if err != nil {
+		return nil, errors.Wrap(err, op)
 	}
 
-	return nil
+	return dmn, nil
 }
