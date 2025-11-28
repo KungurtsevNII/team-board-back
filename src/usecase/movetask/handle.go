@@ -33,11 +33,9 @@ func (uc *UC) Handle(ctx context.Context, cmd MoveTaskCommand) (*domain.Task, er
 		return nil, errors.Wrap(err, "failed to get task")
 	}
 
-	if task.ColumnID == cmd.ColumnID {
+	if task.IsInColumn(cmd.ColumnID) {
 		return task, nil
 	}
-
-	// TODO: Проверять существование колонки
 
 	// Получаем актуальное состояние после UPDATE
 	updatedTask, err := uc.repo.MoveTaskColumn(ctx, cmd.TaskID, cmd.ColumnID)

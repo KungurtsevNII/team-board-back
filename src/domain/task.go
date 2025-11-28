@@ -45,3 +45,7 @@ func NewTask(
 		DeletedAt:   nil,
 	}, nil
 }
+
+func (t *Task) IsInColumn(columnID uuid.UUID) bool {
+	return t.ColumnID == columnID
+}
