@@ -56,7 +56,7 @@ func initAndStartHTTPServer(
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},                                                           // Разрешенные источники
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE"},                       // Разрешенные методы
-		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type", "token", "User-id"}, // Разрешенные заголовки
+		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type", "token", "User-ID"}, // Разрешенные заголовки
 		ExposeHeaders:    []string{"Content-Length"},                                              // Заголовки, которые могут быть доступны клиенту
 		AllowCredentials: true,                                                                    // Разрешить отправку учетных данных (например, куки)
 		MaxAge:           12 * time.Hour,                                                          // Время кэширования preflight-запросов
