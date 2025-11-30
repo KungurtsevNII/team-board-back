@@ -86,6 +86,7 @@ func initAndStartHTTPServer(
 	v1Group := mainGroup.Group("/v1")
 	{
 		v1Group.POST("/boards/:board_id/columns", handlers.CreateColumn)
+		v1Group.DELETE("/columns/:column_id", handlers.DeleteColumn)
 		v1Group.POST("/boards", handlers.CreateBoard)
 		v1Group.POST("/tasks", handlers.CreateTask)
 		v1Group.GET("/tasks/:task_id", handlers.GetTask)
