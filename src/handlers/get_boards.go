@@ -36,7 +36,7 @@ type (
 // @Accept json
 // @Produce json
 // @Param User-id path string true "User-id in uuid-format"
-// @Success 200 {object}  GetTaskResponse
+// @Success 200 {object}  GetBoardsResponse
 // @Failure     400,404,408,500,503  {object}  ErrorResponse
 // @Router /v1/boards [GET]
 
