@@ -54,12 +54,12 @@ func initAndStartHTTPServer(
 
 	//TODO: Поменять AllowOrigins: []string{"*"}, на хост фронта
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},                                                // Разрешенные источники
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE"},            // Разрешенные методы
-		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type", "token"}, // Разрешенные заголовки
-		ExposeHeaders:    []string{"Content-Length"},                                   // Заголовки, которые могут быть доступны клиенту
-		AllowCredentials: true,                                                         // Разрешить отправку учетных данных (например, куки)
-		MaxAge:           12 * time.Hour,                                               // Время кэширования preflight-запросов
+		AllowOrigins:     []string{"*"},                                                           // Разрешенные источники
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE"},                       // Разрешенные методы
+		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type", "token", "User-id"}, // Разрешенные заголовки
+		ExposeHeaders:    []string{"Content-Length"},                                              // Заголовки, которые могут быть доступны клиенту
+		AllowCredentials: true,                                                                    // Разрешить отправку учетных данных (например, куки)
+		MaxAge:           12 * time.Hour,                                                          // Время кэширования preflight-запросов
 	}))
 
 	docs.SwaggerInfo.BasePath = mainPath
