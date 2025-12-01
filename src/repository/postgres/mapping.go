@@ -42,3 +42,30 @@ func (col *ColumnRecord) toDomain() (*domain.Column, error) {
 		DeletedAt: col.DeletedAt,
 	}, nil
 }
+
+func (tsr *TaskShortRecord) toDomain() (*domain.Task, error){
+	return &domain.Task{
+		ID:          tsr.ID,
+		ColumnID:    tsr.ColumnID,
+		BoardID:     tsr.BoardID,
+		Number:      tsr.Number,
+		Title:       tsr.Title,
+		CreatedAt:   tsr.CreatedAt,
+		UpdatedAt:   tsr.UpdatedAt,
+		DeletedAt:   tsr.DeletedAt,
+	}, nil
+}
+
+func (tsrs TaskShortRecords) toDomain() ([]domain.Task, error) {
+	op := "postgres.TaskShortRecords.ToDomain"
+
+	dmn := make([]domain.Task, 0)
+    for _, el := range tsrs {
+        d, err := el.toDomain()
+        if err != nil {
+            return nil, errors.Wrap(err, op)
+        }
+        dmn = append(dmn, *d)
+    }
+	return dmn, nil
+}
