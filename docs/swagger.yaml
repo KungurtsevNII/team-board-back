@@ -173,6 +173,12 @@ definitions:
               type: string
             type: array
         type: object
+      limit:
+        type: integer
+      offset:
+        type: integer
+      query:
+        type: string
     type: object
 externalDocs:
   description: OpenAPI
@@ -441,18 +447,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/handlers.SearchTasksRequest'
-      - description: название задачи
-        in: query
-        name: q
-        type: string
-      - description: лимит
-        in: query
-        name: limit
-        type: string
-      - description: отступ
-        in: query
-        name: offset
-        type: string
       produces:
       - application/json
       responses:

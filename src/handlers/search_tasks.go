@@ -14,7 +14,10 @@ import (
 
 type (
 	SearchTasksRequest struct {
-		Filters struct{
+		Query   string `json:"query"`
+		Limit   uint `json:"limit"`
+		Offset  uint `json:"offset"`
+		Filters struct {
 			Tags []string `json:"tags"`
 		} `json:"filters"`
 	}
@@ -31,15 +34,13 @@ type (
 		Title    string    `json:"title"`
 	}
 )
+
 // @Summary Поиск задач по тегам и названию
 // @Schemes
 // @Tags Tasks
 // @Accept json
 // @Produce json
 // @Param searchTasksRequest body SearchTasksRequest true "request для поиска тасок"
-// @Param q query string false "название задачи"
-// @Param limit query string false "лимит"
-// @Param offset query string false "отступ"
 // @Success 200 {object}  []SearchTaskResponse
 // @Failure     400,408,500,503  {object}  ErrorResponse
 // @Router /v1/tasks/search [POST]
@@ -47,8 +48,6 @@ func (h *HttpHandler) SearchTasks(c *gin.Context) {
 	const op = "handlers.SearchTasks"
 	log := slog.Default()
 	log.With("op", op)
-
-	q, limit, offset := c.Query("q"), c.Query("limit"), c.Query("offset")
 
 	var req SearchTasksRequest
 	err := c.BindJSON(&req)
@@ -58,7 +57,7 @@ func (h *HttpHandler) SearchTasks(c *gin.Context) {
 		return
 	}
 
-	qry, err := searchtasks.NewQuery(req.Filters.Tags, q, limit, offset)
+	qry, err := searchtasks.NewQuery(req.Filters.Tags, req.Query, req.Limit, req.Offset)
 	if err != nil {
 		log.Warn("failed to create command", "error", err)
 		NewErrorResponse(c, http.StatusBadRequest, "failed to create command")

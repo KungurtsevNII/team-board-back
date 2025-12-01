@@ -296,24 +296,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/handlers.SearchTasksRequest"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "название задачи",
-                        "name": "q",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "лимит",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "отступ",
-                        "name": "offset",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -737,6 +719,15 @@ const docTemplate = `{
                             }
                         }
                     }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "query": {
+                    "type": "string"
                 }
             }
         }

@@ -1,10 +1,5 @@
 package searchtasks
 
-import (
-	"strconv"
-
-	"github.com/pkg/errors"
-)
 
 const(
 	maxRows = 25
@@ -17,37 +12,15 @@ type Query struct {
 	Offset uint
 }
 
-func NewQuery(tags []string, query, limit, offset string) (Query, error) {
-	var offsetNum uint64
-	if offset != "" {
-		var err error
-		offsetNum, err = strconv.ParseUint(offset, 10, 64)
-		if err != nil {
-			return Query{}, errors.Wrap(ErrValidationFailed, err.Error())
-		}
-	}
-
-	var limitNum uint64 = offsetNum + maxRows
-	if limit != "" {
-		var err error
-		limitNum, err = strconv.ParseUint(limit, 10, 64)
-		if err != nil {
-			return Query{}, errors.Wrap(ErrValidationFailed, err.Error())
-		}
-	}
-
-	if limitNum < offsetNum{
-	    return Query{}, ErrValidationFailed
-	}
-
-	if limitNum - offsetNum > maxRows {
-	    limitNum = offsetNum + maxRows
+func NewQuery(tags []string, query string, limit, offset uint) (Query, error) {
+	if limit == 0 || limit > maxRows {
+		limit = maxRows
 	}
 
 	return Query{
 		Tags:   tags,
 		Query:  query,
-		Limit:  uint(limitNum),
-		Offset: uint(offsetNum),
+		Limit:  limit,
+		Offset: offset,
 	}, nil
 }
