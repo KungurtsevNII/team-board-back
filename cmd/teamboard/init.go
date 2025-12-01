@@ -92,6 +92,7 @@ func initAndStartHTTPServer(
 		v1Group.GET("/tasks/:task_id", handlers.GetTask)
 		v1Group.DELETE("/tasks/:task_id", handlers.DeleteTask)
 		v1Group.GET("/boards", handlers.GetBoards)
+		v1Group.DELETE("/boards/:id", handlers.DeleteBoard)
 		v1Group.GET("/boards/:id", handlers.GetBoard)
 	}
 

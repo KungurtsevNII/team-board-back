@@ -12,6 +12,7 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createboard"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createcolumn"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/createtask"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/deleteboard"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/deletecolumn"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/deletetask"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/getboard"
@@ -45,6 +46,7 @@ func main() {
 		getboard.NewUC(rep),
 		createtask.NewUC(rep),
 		getboards.NewUC(rep),
+		deleteboard.NewUC(rep),
 		gettask.NewUC(rep),
 		deletetask.NewUC(rep),
 		deletecolumn.NewUC(rep),

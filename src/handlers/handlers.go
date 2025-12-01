@@ -19,6 +19,7 @@ type HttpHandler struct {
 	getBoardUC     GetBoardUseCase
 	createTaskUC   CreateTaskUseCase
 	getBoardsUC    GetBoardsUseCase
+	deleteboardUC  DeleteBoardUseCase
 	getTaskUC      GetTaskUseCase
 	deleteTaskUC   DeleteTaskUseCase
 	deleteColumnUC DeleteColumnUseCase
@@ -31,6 +32,8 @@ func NewHttpHandler(
 	getBoardUC GetBoardUseCase,
 	createTaskUC CreateTaskUseCase,
 	getboardsUC GetBoardsUseCase,
+	deleteboardUC DeleteBoardUseCase,
+
 	getTaskUC GetTaskUseCase,
 	deleteTaskUC DeleteTaskUseCase,
 	deleteColumnUC DeleteColumnUseCase,
@@ -42,6 +45,7 @@ func NewHttpHandler(
 		getBoardUC:     getBoardUC,
 		createTaskUC:   createTaskUC,
 		getBoardsUC:    getboardsUC,
+		deleteboardUC:  deleteboardUC,
 		getTaskUC:      getTaskUC,
 		deleteTaskUC:   deleteTaskUC,
 		deleteColumnUC: deleteColumnUC,
