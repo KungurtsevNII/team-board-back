@@ -29,3 +29,16 @@ type TaskRecord struct {
 	UpdatedAt   time.Time  `db:"updated_at"`
 	DeletedAt   *time.Time `db:"deleted_at"`
 }
+
+type TaskShortRecord struct {
+	ID          uuid.UUID  `db:"id"`
+	BoardID     uuid.UUID  `db:"board_id"`
+	ColumnID    uuid.UUID  `db:"column_id"`
+	Number      int64      `db:"number"`
+	Title       string     `db:"title"`
+	CreatedAt   time.Time  `db:"created_at"`
+	UpdatedAt   time.Time  `db:"updated_at"`
+	DeletedAt   *time.Time `db:"deleted_at"`
+}
+
+type TaskShortRecords []TaskShortRecord //Для поинтера в маппинге
