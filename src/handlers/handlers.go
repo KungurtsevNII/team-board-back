@@ -1,15 +1,8 @@
 package handlers
 
 import (
-	"log/slog"
-	"net/http"
-
 	"github.com/KungurtsevNII/team-board-back/src/config"
 	"github.com/gin-gonic/gin"
-)
-
-const (
-	v1 = "/v1"
 )
 
 type HttpHandler struct {
@@ -72,14 +65,4 @@ func NewErrorResponse(c *gin.Context, statusCode int, message string) {
 		},
 	}
 	c.AbortWithStatusJSON(statusCode, err)
-}
-
-func (s *HttpHandler) Healthcheck(c *gin.Context) {
-	const op = "handlers.Healthcheck"
-	log := slog.Default().With("op", op)
-	log.Info("healthcheck endpoint called")
-
-	c.JSON(http.StatusOK, gin.H{
-		"status": http.StatusOK,
-	})
 }
