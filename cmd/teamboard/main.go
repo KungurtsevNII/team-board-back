@@ -67,7 +67,7 @@ func main() {
 		os.Exit(1)
 	case sig := <-stop:
 		log.Info("received shutdown signal", slog.String("signal", sig.String()))
-		httpsrv.srv.Close()
+		_ = httpsrv.srv.Close()
 		rep.Close()
 		log.Info("shutdown complete")
 	}
