@@ -13,9 +13,6 @@ import (
 )
 
 type (
-	GetBoardRequest struct {
-		ID uuid.UUID `json:"id"`
-	}
 
 	GetBoardBoard struct {
 		ID        uuid.UUID        `json:"id"`
@@ -45,6 +42,15 @@ type (
 	}
 )
 
+// @Summary Получение доски по id
+// @Schemes
+// @Tags Boards
+// @Accept json
+// @Produce json
+// @Param id path string true "User-id in uuid-format"
+// @Success 200 {object}  GetBoardsResponse
+// @Failure     400,404,408,500,503  {object}  ErrorResponse
+// @Router /v1/boards/{id} [GET]
 func (h *HttpHandler) GetBoard(c *gin.Context) {
 	const op = "handlers.GetBoard"
 	log := slog.Default()
@@ -54,13 +60,16 @@ func (h *HttpHandler) GetBoard(c *gin.Context) {
 	id := c.Param("id")
 	cmd, err := getboard.NewQuery(id)
 	if err != nil {
+		log.Warn("failed to create command", "err", err)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 
 	board, err := h.getBoardUC.Handle(c.Request.Context(), cmd)
 	if err != nil {
+		log.Error("failed to handle board", "error", err)
 		switch {
 		case errors.Is(err, getboard.ErrInvalidID):
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -74,13 +83,17 @@ func (h *HttpHandler) GetBoard(c *gin.Context) {
 			c.JSON(http.StatusConflict, gin.H{
 				"error": err.Error(),
 			})
+		default:
+			NewErrorResponse(c, http.StatusInternalServerError, "internal server error")
 		}
+		return
 	}
 
 	columns := dtoColumnsToResp(board.Columns)
 	tasks := dtoTasksToResp(board.Tasks)
 
 	resp := GetBoardBoard{
+		ID:        board.ID,
 		Name:      board.Name,
 		ShortName: board.ShortName,
 		Columns:   columns,

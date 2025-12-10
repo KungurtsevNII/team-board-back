@@ -16,7 +16,7 @@ func (r *Repository) DeleteBoard(ctx context.Context, id uuid.UUID) error {
 		return deleteboard.ErrBoardDoesntExist
 	}
 
-	now := time.Now().UTC
+	now := time.Now().UTC()
 	_, err := r.pool.Exec(ctx, `
 	UPDATE boards SET 
     deleted_at = $1,
