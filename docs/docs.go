@@ -16,6 +16,65 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/v1/boards": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Boards"
+                ],
+                "summary": "Get boards by User-id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User-id in uuid-format",
+                        "name": "User-id",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.GetBoardsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "408": {
+                        "description": "Request Timeout",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "consumes": [
                     "application/json"
@@ -141,6 +200,112 @@ const docTemplate = `{
                     },
                     "503": {
                         "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/boards/{id}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Boards"
+                ],
+                "summary": "Получение доски по id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User-id in uuid-format",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.GetBoardsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "408": {
+                        "description": "Request Timeout",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Удаляет доску по её ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Boards"
+                ],
+                "summary": "Удаление доски",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID доски",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Доска успешно удалена"
+                    },
+                    "400": {
+                        "description": "Некорректный запрос или неверный ID",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Доска не найдена",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
                         "schema": {
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
@@ -454,6 +619,23 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "handlers.Board": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "short_name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.CheckListItemDto": {
             "type": "object",
             "properties": {
@@ -639,6 +821,17 @@ const docTemplate = `{
             "properties": {
                 "error": {
                     "$ref": "#/definitions/handlers.Error"
+                }
+            }
+        },
+        "handlers.GetBoardsResponse": {
+            "type": "object",
+            "properties": {
+                "boards": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.Board"
+                    }
                 }
             }
         },

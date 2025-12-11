@@ -25,7 +25,7 @@ func NewUC(repo Repo) *UC {
 func (uc *UC) Handle(ctx context.Context, cmd Query) ([]domain.Board, error) {
 	boards, err := uc.repo.GetBoards(ctx, cmd.UserID)
 	if err != nil {
-		errors.Wrap(ErrGetBoards, err.Error())
+		return nil, errors.Wrap(ErrGetBoards, err.Error())
 	}
 
 	return boards, nil

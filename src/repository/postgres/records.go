@@ -42,3 +42,12 @@ type TaskShortRecord struct {
 }
 
 type TaskShortRecords []TaskShortRecord //Для поинтера в маппинге
+
+type BoardRecord struct {
+	ID        uuid.UUID  `db:"id" goqu:"skipupdate"`
+	Name      string     `db:"name"`
+	ShortName string    `db:"short_name"`
+	CreatedAt time.Time  `db:"created_at" goqu:"skipupdate"`
+	UpdatedAt time.Time  `db:"updated_at"`
+	DeletedAt *time.Time `db:"deleted_at"`
+}

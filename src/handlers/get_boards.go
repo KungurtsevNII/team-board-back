@@ -32,14 +32,13 @@ type (
 
 // @Summary Get boards by User-id
 // @Schemes
-// @Tags boards
+// @Tags Boards
 // @Accept json
 // @Produce json
-// @Param User-id path string true "User-id in uuid-format"
+// @Param User-id header string true "User-id in uuid-format"
 // @Success 200 {object}  GetBoardsResponse
 // @Failure     400,404,408,500,503  {object}  ErrorResponse
 // @Router /v1/boards [GET]
-
 func (h *HttpHandler) GetBoards(c *gin.Context) {
 	const op = "handlers.GetBoards"
 	log := slog.Default()

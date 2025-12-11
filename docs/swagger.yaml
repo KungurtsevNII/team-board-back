@@ -1,5 +1,16 @@
 basePath: /api
 definitions:
+  handlers.Board:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      short_name:
+        type: string
+      updated_at:
+        type: string
+    type: object
   handlers.CheckListItemDto:
     properties:
       completed:
@@ -122,6 +133,13 @@ definitions:
       error:
         $ref: '#/definitions/handlers.Error'
     type: object
+  handlers.GetBoardsResponse:
+    properties:
+      boards:
+        items:
+          $ref: '#/definitions/handlers.Board'
+        type: array
+    type: object
   handlers.GetTaskResponse:
     properties:
       board_id:
@@ -190,6 +208,45 @@ info:
   version: "1.0"
 paths:
   /v1/boards:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: User-id in uuid-format
+        in: header
+        name: User-id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.GetBoardsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "408":
+          description: Request Timeout
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get boards by User-id
+      tags:
+      - Boards
     post:
       consumes:
       - application/json
@@ -276,6 +333,76 @@ paths:
       summary: Создание новой колонки
       tags:
       - Columns
+  /v1/boards/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удаляет доску по её ID
+      parameters:
+      - description: ID доски
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Доска успешно удалена
+        "400":
+          description: Некорректный запрос или неверный ID
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Доска не найдена
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Удаление доски
+      tags:
+      - Boards
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: User-id in uuid-format
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.GetBoardsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "408":
+          description: Request Timeout
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Получение доски по id
+      tags:
+      - Boards
   /v1/columns/{column_id}:
     delete:
       consumes:
