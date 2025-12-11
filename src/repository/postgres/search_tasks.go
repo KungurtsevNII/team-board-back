@@ -30,6 +30,7 @@ func (r Repository) SearchTasks(
     }
     
     ds = ds.Select(&TaskShortRecord{}).
+        Where(goqu.C("deleted_at").IsNull()).
 		Order(goqu.C("created_at").Desc()).
         Limit(limit).
         Offset(offset)

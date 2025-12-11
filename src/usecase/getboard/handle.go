@@ -6,6 +6,7 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/domain"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/jackc/pgx/v5"
 )
 
 type Repo interface {
@@ -27,6 +28,9 @@ func (uc *UC) Handle(ctx context.Context, quer Query) (*domain.Board, error) {
 
 	board, err := uc.repo.GetBoard(ctx, quer.ID)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows){
+			return nil, errors.Wrap(ErrBoardNotFound, err.Error())
+		}
 		return nil, errors.Wrap(err, op)
 	}
 	return board, nil

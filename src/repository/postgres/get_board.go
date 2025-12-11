@@ -6,7 +6,6 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/domain"
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/pkg/errors"
 )
 
@@ -16,13 +15,10 @@ func (r Repository) GetBoard(ctx context.Context, ID uuid.UUID) (*domain.Board, 
 	var board domain.Board
 	err := pgxscan.Get(ctx, r.pool, &board,
 		`SELECT id, name, short_name, created_at, updated_at, deleted_at 
-		FROM boards WHERE id = $1`, ID)
+		FROM boards WHERE id = $1
+		AND deleted_at IS NULL`, ID)
 
 	if err != nil {
-		switch {
-		case errors.Is(err, pgx.ErrNoRows):
-			return nil, errors.Wrap(err, op)
-		}
 		return nil, err
 	}
 

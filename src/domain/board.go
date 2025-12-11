@@ -72,3 +72,8 @@ func (b *Board) GetFirstColumn() (Column, error) {
 	}
 	return b.Columns[0], nil
 }
+
+func (c *Board) Delete() {
+	now := time.Now().UTC()
+	c.DeletedAt = &now
+}

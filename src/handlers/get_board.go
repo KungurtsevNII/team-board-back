@@ -62,7 +62,7 @@ func (h *HttpHandler) GetBoard(c *gin.Context) {
 	if err != nil {
 		log.Warn("failed to create command", "err", err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"error": "failed to create command",
 		})
 		return
 	}
@@ -73,15 +73,15 @@ func (h *HttpHandler) GetBoard(c *gin.Context) {
 		switch {
 		case errors.Is(err, getboard.ErrInvalidID):
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
+				"error": getboard.ErrInvalidID.Error(),
 			})
 		case errors.Is(err, getboard.ErrBoardNotFound):
 			c.JSON(http.StatusNotFound, gin.H{
-				"error": err.Error(),
+				"error": getboard.ErrBoardNotFound.Error(),
 			})
 		case errors.Is(err, getboard.ErrBoardIsNotExists):
 			c.JSON(http.StatusConflict, gin.H{
-				"error": err.Error(),
+				"error": getboard.ErrBoardNotFound.Error(),
 			})
 		default:
 			NewErrorResponse(c, http.StatusInternalServerError, "internal server error")

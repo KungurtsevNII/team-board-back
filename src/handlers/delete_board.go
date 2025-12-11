@@ -52,6 +52,8 @@ func (h *HttpHandler) DeleteBoard(c *gin.Context) {
 			NewErrorResponse(c, http.StatusBadRequest, "board id is invalid")
 		case errors.Is(err, deleteboard.ErrBoardDoesntExist):
 			NewErrorResponse(c, http.StatusNotFound, "board doesn't exist")
+		case errors.Is(err, deleteboard.ErrBoardDeleteUnknown):
+			NewErrorResponse(c, http.StatusInternalServerError, "board delete unknown error")
 		default:
 			log.Error("failed to delete board", "error", err)
 			NewErrorResponse(c, http.StatusInternalServerError, "internal server error")
