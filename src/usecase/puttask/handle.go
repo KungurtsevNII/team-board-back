@@ -38,23 +38,20 @@ func (uc *UC) Handle(ctx context.Context, cmd Command) (task *domain.Task, err e
 		return nil, ErrColumnNotFound
 	}
 
-	targetDmn := &domain.Task{
-		ID:          cmd.TaskID,
-		ColumnID:    cmd.ColumnID,
-		BoardID:     cmd.BoardID,
-		Number:      cmd.Number,
-		Title:       cmd.Title,
-		Description: cmd.Description,
-		Tags:        cmd.Tags,
-		Checklists:  cmd.Checklists,
-		CreatedAt:   foundDmn.CreatedAt,
-		UpdatedAt:   foundDmn.UpdatedAt,
-	}
+	foundDmn.Update(
+		cmd.ColumnID,
+		cmd.BoardID,
+		cmd.Number,
+		cmd.Title,
+		cmd.Description,
+		cmd.Tags,
+		cmd.Checklists,
+	)
 
-	err = uc.repo.UpdateTask(ctx, targetDmn)
+	err = uc.repo.UpdateTask(ctx, foundDmn)
 	if err != nil {
 		return nil, errors.Wrap(ErrPutTaskUnknown, err.Error())
 	}
 
-	return targetDmn, nil
+	return foundDmn, nil
 }
