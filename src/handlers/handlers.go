@@ -8,10 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	v1 = "/v1"
-)
-
 type HttpHandler struct {
 	cfg            *config.HTTPConfig
 	createColumnUC CreateColumnUseCase

@@ -13,9 +13,10 @@ func (r Repository) GetColumns(ctx context.Context, ID uuid.UUID) ([]domain.Colu
 	const op = "postgres.GetBoard"
 
 	columns := make([]domain.Column, 0)
-	err := pgxscan.Select(ctx, r.pool, columns,
+	err := pgxscan.Select(ctx, r.pool, &columns,
 		`SELECT id, board_id, order_num, name 
 		FROM columns WHERE board_id = $1 
+		AND deleted_at IS NULL
 		ORDER BY order_num;`, ID)
 	if err != nil {
 		return nil, errors.Wrap(err, op)

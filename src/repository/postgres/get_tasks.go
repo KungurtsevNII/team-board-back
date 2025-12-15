@@ -13,9 +13,10 @@ func (r Repository) GetTasks(ctx context.Context, ID uuid.UUID) ([]domain.Task, 
 	const op = "postgres.GetTasks"
 
 	tasks := make([]domain.Task, 0)
-	err := pgxscan.Select(ctx, r.pool, tasks,
+	err := pgxscan.Select(ctx, r.pool, &tasks,
 		`SELECT id, column_id, board_id, number, title 
-		FROM tasks WHERE board_id = $1 
+		FROM tasks WHERE board_id = $1
+		AND deleted_at IS NULL
 		ORDER BY number;`, ID)
 	if err != nil {
 		return nil, errors.Wrap(err, op)

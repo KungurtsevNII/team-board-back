@@ -11,9 +11,6 @@ import (
 )
 
 type (
-	DeleteBoardRequest struct {
-		ID string `json:"id"`
-	}
 
 	DeleteBoardUseCase interface {
 		Handle(ctx context.Context, cmd deleteboard.Command) error
@@ -23,16 +20,15 @@ type (
 // DeleteBoard godoc
 // @Summary Удаление доски
 // @Description Удаляет доску по её ID
-// @Tags boards
+// @Tags Boards
 // @Accept json
 // @Produce json
-// @Param request body DeleteBoardRequest true "ID доски"
+// @Param id path string true "ID доски"
 // @Success 204 "Доска успешно удалена"
 // @Failure 400 {object} ErrorResponse "Некорректный запрос или неверный ID"
 // @Failure 404 {object} ErrorResponse "Доска не найдена"
 // @Failure 500 {object} ErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/boards [delete]
-
+// @Router /v1/boards/{id} [delete]
 func (h *HttpHandler) DeleteBoard(c *gin.Context) {
 	const op = "handlers.DeleteBoards"
 	log := slog.Default()
@@ -42,6 +38,7 @@ func (h *HttpHandler) DeleteBoard(c *gin.Context) {
 
 	cmd, err := deleteboard.NewCommand(id)
 	if err != nil {
+		log.Warn("failed to create command", "err", err)
 		NewErrorResponse(c, http.StatusBadRequest, "failed to create command")
 		return
 	}
@@ -55,6 +52,8 @@ func (h *HttpHandler) DeleteBoard(c *gin.Context) {
 			NewErrorResponse(c, http.StatusBadRequest, "board id is invalid")
 		case errors.Is(err, deleteboard.ErrBoardDoesntExist):
 			NewErrorResponse(c, http.StatusNotFound, "board doesn't exist")
+		case errors.Is(err, deleteboard.ErrBoardDeleteUnknown):
+			NewErrorResponse(c, http.StatusInternalServerError, "board delete unknown error")
 		default:
 			log.Error("failed to delete board", "error", err)
 			NewErrorResponse(c, http.StatusInternalServerError, "internal server error")
