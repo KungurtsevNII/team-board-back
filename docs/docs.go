@@ -148,6 +148,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/columns/{column_id}": {
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Columns"
+                ],
+                "summary": "Удаление колонки по id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID колонки",
+                        "name": "column_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "408": {
+                        "description": "Request Timeout",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/tasks": {
             "post": {
                 "consumes": [
@@ -186,6 +250,66 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "408": {
+                        "description": "Request Timeout",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/tasks/search": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Поиск задач по тегам и названию",
+                "parameters": [
+                    {
+                        "description": "request для поиска тасок",
+                        "name": "searchTasksRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SearchTasksRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.SearchTaskResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
@@ -270,10 +394,8 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/v1/tasks/{task_id}/move": {
-            "put": {
+            },
+            "delete": {
                 "consumes": [
                     "application/json"
                 ],
@@ -283,7 +405,7 @@ const docTemplate = `{
                 "tags": [
                     "Tasks"
                 ],
-                "summary": "Перемещение задачи в другую колонку",
+                "summary": "Удаление задачи по id",
                 "parameters": [
                     {
                         "type": "string",
@@ -291,23 +413,11 @@ const docTemplate = `{
                         "name": "task_id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "request на перемещение задачи",
-                        "name": "moveTaskRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.MoveTaskRequest"
-                        }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Полная информация об обновленной задаче",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.MoveTaskResponse"
-                        }
+                    "204": {
+                        "description": "No Content"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -383,7 +493,25 @@ const docTemplate = `{
         "handlers.CreateBoardResponce": {
             "type": "object",
             "properties": {
+                "column": {
+                    "$ref": "#/definitions/handlers.CreateColumnResponse"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
                 "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "short_name": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
@@ -558,39 +686,13 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.MoveTaskRequest": {
-            "type": "object",
-            "required": [
-                "column_id"
-            ],
-            "properties": {
-                "column_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.MoveTaskResponse": {
+        "handlers.SearchTaskResponse": {
             "type": "object",
             "properties": {
                 "board_id": {
                     "type": "string"
                 },
-                "checklists": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.ChecklistDto"
-                    }
-                },
                 "column_id": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "type": "string"
-                },
-                "description": {
                     "type": "string"
                 },
                 "id": {
@@ -599,16 +701,32 @@ const docTemplate = `{
                 "number": {
                     "type": "integer"
                 },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "title": {
                     "type": "string"
+                }
+            }
+        },
+        "handlers.SearchTasksRequest": {
+            "type": "object",
+            "properties": {
+                "filters": {
+                    "type": "object",
+                    "properties": {
+                        "tags": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
                 },
-                "updated_at": {
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "query": {
                     "type": "string"
                 }
             }

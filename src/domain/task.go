@@ -4,7 +4,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
+
+var ErrAlreadyInColumn = errors.New("task already in target column")
 
 type Task struct {
 	ID          uuid.UUID
@@ -46,6 +49,18 @@ func NewTask(
 	}, nil
 }
 
-func (t *Task) IsInColumn(columnID uuid.UUID) bool {
-	return t.ColumnID == columnID
+
+func (t *Task) MoveToColumn(columnID uuid.UUID) error {
+	if t.ColumnID == columnID {
+		return ErrAlreadyInColumn
+	}
+
+	t.ColumnID = columnID
+	t.UpdatedAt = time.Now().UTC()
+	return nil
+}
+
+func (c *Task) Delete() {
+	now := time.Now().UTC()
+	c.DeletedAt = &now
 }

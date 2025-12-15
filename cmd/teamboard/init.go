@@ -54,12 +54,12 @@ func initAndStartHTTPServer(
 
 	//TODO: Поменять AllowOrigins: []string{"*"}, на хост фронта
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},                                                // Разрешенные источники
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE"},            // Разрешенные методы
-		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type", "token"}, // Разрешенные заголовки
-		ExposeHeaders:    []string{"Content-Length"},                                   // Заголовки, которые могут быть доступны клиенту
-		AllowCredentials: true,                                                         // Разрешить отправку учетных данных (например, куки)
-		MaxAge:           12 * time.Hour,                                               // Время кэширования preflight-запросов
+		AllowOrigins:     []string{"*"},                                                           // Разрешенные источники
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE"},                       // Разрешенные методы
+		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type", "token", "User-ID"}, // Разрешенные заголовки
+		ExposeHeaders:    []string{"Content-Length"},                                              // Заголовки, которые могут быть доступны клиенту
+		AllowCredentials: true,                                                                    // Разрешить отправку учетных данных (например, куки)
+		MaxAge:           12 * time.Hour,                                                          // Время кэширования preflight-запросов
 	}))
 
 	docs.SwaggerInfo.BasePath = mainPath
@@ -86,10 +86,15 @@ func initAndStartHTTPServer(
 	v1Group := mainGroup.Group("/v1")
 	{
 		v1Group.POST("/boards/:board_id/columns", handlers.CreateColumn)
+		v1Group.DELETE("/columns/:column_id", handlers.DeleteColumn)
 		v1Group.POST("/boards", handlers.CreateBoard)
 		v1Group.POST("/tasks", handlers.CreateTask)
 		v1Group.GET("/tasks/:task_id", handlers.GetTask)
+		v1Group.DELETE("/tasks/:task_id", handlers.DeleteTask)
+		v1Group.POST("/tasks/search", handlers.SearchTasks)
 		v1Group.GET("/boards", handlers.GetBoards)
+		v1Group.DELETE("/boards/:id", handlers.DeleteBoard)
+		v1Group.GET("/boards/:id", handlers.GetBoard)
 		v1Group.PUT("/tasks/:task_id/move", handlers.MoveTask)
 	}
 

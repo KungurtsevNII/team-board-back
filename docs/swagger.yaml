@@ -25,7 +25,19 @@ definitions:
     type: object
   handlers.CreateBoardResponce:
     properties:
+      column:
+        $ref: '#/definitions/handlers.CreateColumnResponse'
+      created_at:
+        type: string
+      deleted_at:
+        type: string
       id:
+        type: string
+      name:
+        type: string
+      short_name:
+        type: string
+      updated_at:
         type: string
     type: object
   handlers.CreateColumnRequest:
@@ -139,40 +151,33 @@ definitions:
       updated_at:
         type: string
     type: object
-  handlers.MoveTaskRequest:
-    properties:
-      column_id:
-        type: string
-    required:
-    - column_id
-    type: object
-  handlers.MoveTaskResponse:
+  handlers.SearchTaskResponse:
     properties:
       board_id:
         type: string
-      checklists:
-        items:
-          $ref: '#/definitions/handlers.ChecklistDto'
-        type: array
       column_id:
-        type: string
-      created_at:
-        type: string
-      deleted_at:
-        type: string
-      description:
         type: string
       id:
         type: string
       number:
         type: integer
-      tags:
-        items:
-          type: string
-        type: array
       title:
         type: string
-      updated_at:
+    type: object
+  handlers.SearchTasksRequest:
+    properties:
+      filters:
+        properties:
+          tags:
+            items:
+              type: string
+            type: array
+        type: object
+      limit:
+        type: integer
+      offset:
+        type: integer
+      query:
         type: string
     type: object
 externalDocs:
@@ -271,6 +276,48 @@ paths:
       summary: Создание новой колонки
       tags:
       - Columns
+  /v1/columns/{column_id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID колонки
+        in: path
+        name: column_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "408":
+          description: Request Timeout
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Удаление колонки по id
+      tags:
+      - Columns
   /v1/tasks:
     post:
       consumes:
@@ -313,6 +360,43 @@ paths:
       tags:
       - Tasks
   /v1/tasks/{task_id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID задачи
+        in: path
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "408":
+          description: Request Timeout
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Удаление задачи по id
+      tags:
+      - Tasks
     get:
       consumes:
       - application/json
@@ -352,35 +436,28 @@ paths:
       summary: Получение задачи по ID
       tags:
       - Tasks
-  /v1/tasks/{task_id}/move:
-    put:
+  /v1/tasks/search:
+    post:
       consumes:
       - application/json
       parameters:
-      - description: ID задачи
-        in: path
-        name: task_id
-        required: true
-        type: string
-      - description: request на перемещение задачи
+      - description: request для поиска тасок
         in: body
-        name: moveTaskRequest
+        name: searchTasksRequest
         required: true
         schema:
-          $ref: '#/definitions/handlers.MoveTaskRequest'
+          $ref: '#/definitions/handlers.SearchTasksRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: Полная информация об обновленной задаче
+          description: OK
           schema:
-            $ref: '#/definitions/handlers.MoveTaskResponse'
+            items:
+              $ref: '#/definitions/handlers.SearchTaskResponse'
+            type: array
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "404":
-          description: Not Found
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
         "408":
@@ -395,7 +472,7 @@ paths:
           description: Service Unavailable
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
-      summary: Перемещение задачи в другую колонку
+      summary: Поиск задач по тегам и названию
       tags:
       - Tasks
 securityDefinitions:

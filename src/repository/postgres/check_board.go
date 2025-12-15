@@ -7,6 +7,8 @@ import (
 )
 
 func (r Repository) CheckBoard(ctx context.Context, id string) bool {
+	const op = "postgres.CheckBoard"
+
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return false
