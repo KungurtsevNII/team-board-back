@@ -9,4 +9,5 @@ var (
 	ErrValidationFailed = errors.New("validation failed")
 	ErrTaskNotFound     = errors.New("task not found")
 	ErrMoveTaskUnknown  = errors.New("failed to move task")
+	ErrColumnNotInBoard = errors.New("column does not belong to task's board")
 )

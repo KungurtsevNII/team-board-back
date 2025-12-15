@@ -90,7 +90,9 @@ func (h *HttpHandler) MoveTask(c *gin.Context) {
 
 		switch {
 		case errors.Is(err, movetask.ErrTaskNotFound):
-			NewErrorResponse(c, http.StatusBadRequest, "task not found")
+			NewErrorResponse(c, http.StatusNotFound, "task not found")
+		case errors.Is(err, movetask.ErrColumnNotInBoard):
+			NewErrorResponse(c, http.StatusBadRequest, "column does not belong to the task's board")
 		case errors.Is(err, context.Canceled):
 			NewErrorResponse(c, http.StatusRequestTimeout, "request canceled")
 		case errors.Is(err, context.DeadlineExceeded):

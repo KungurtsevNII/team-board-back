@@ -49,6 +49,10 @@ func NewTask(
 	}, nil
 }
 
+func (c *Task) Delete() {
+	now := time.Now().UTC()
+	c.DeletedAt = &now
+}
 
 func (t *Task) MoveToColumn(columnID uuid.UUID) error {
 	if t.ColumnID == columnID {
@@ -58,9 +62,4 @@ func (t *Task) MoveToColumn(columnID uuid.UUID) error {
 	t.ColumnID = columnID
 	t.UpdatedAt = time.Now().UTC()
 	return nil
-}
-
-func (c *Task) Delete() {
-	now := time.Now().UTC()
-	c.DeletedAt = &now
 }
