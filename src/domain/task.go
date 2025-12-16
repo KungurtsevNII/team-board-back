@@ -49,6 +49,37 @@ func NewTask(
 	}, nil
 }
 
+	// targetDmn := &domain.Task{
+	// 	ID:          cmd.TaskID,
+	// 	ColumnID:    cmd.ColumnID,
+	// 	BoardID:     cmd.BoardID,
+	// 	Number:      cmd.Number,
+	// 	Title:       cmd.Title,
+	// 	Description: cmd.Description,
+	// 	Tags:        cmd.Tags,
+	// 	Checklists:  cmd.Checklists,
+	// 	CreatedAt:   foundDmn.CreatedAt,
+	// 	UpdatedAt:   foundDmn.UpdatedAt,
+	// }
+func (t *Task)Update(
+	columnID uuid.UUID,
+	boardID uuid.UUID,
+	number int64,
+	title string,
+	description *string,
+	tags []string,
+	checklists []Checklist,
+){
+	t.ColumnID = columnID
+	t.BoardID = boardID
+	t.Number = number
+	t.Title = title
+	t.Description = description
+	t.Tags = tags
+	t.Checklists = checklists
+	t.UpdatedAt = time.Now().UTC()
+}
+
 func (c *Task) Delete() {
 	now := time.Now().UTC()
 	c.DeletedAt = &now

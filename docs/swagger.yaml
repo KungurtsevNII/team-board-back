@@ -169,6 +169,54 @@ definitions:
       updated_at:
         type: string
     type: object
+  handlers.PutTaskRequest:
+    properties:
+      board_id:
+        type: string
+      checklists:
+        items:
+          $ref: '#/definitions/handlers.ChecklistDto'
+        type: array
+      column_id:
+        type: string
+      description:
+        type: string
+      number:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+    type: object
+  handlers.PutTaskResponse:
+    properties:
+      board_id:
+        type: string
+      checklists:
+        items:
+          $ref: '#/definitions/handlers.ChecklistDto'
+        type: array
+      column_id:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      number:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
   handlers.SearchTaskResponse:
     properties:
       board_id:
@@ -561,6 +609,51 @@ paths:
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
       summary: Получение задачи по ID
+      tags:
+      - Tasks
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID задачи
+        in: path
+        name: task_id
+        required: true
+        type: string
+      - description: put task request
+        in: body
+        name: putTaskRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.PutTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.PutTaskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "408":
+          description: Request Timeout
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Изменение задачи
       tags:
       - Tasks
   /v1/tasks/search:

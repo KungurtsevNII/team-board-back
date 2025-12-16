@@ -21,6 +21,7 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/usecase/searchtasks"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/movetask"
 	"github.com/sytallax/prettylog"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/puttask"
 )
 
 const (
@@ -54,6 +55,7 @@ func main() {
 		deletecolumn.NewUC(rep),
 		searchtasks.NewUC(rep),
 		movetask.NewUC(rep),
+		puttask.NewUC(rep),
 	)
 
 	log.Info("repository connected", slog.String("path", cfg.PostgresConfig.Host))
