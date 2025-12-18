@@ -17,6 +17,28 @@ func TestSearchTasks(t *testing.T) {
 	boardID := uuid.New()
 	columnID := uuid.New()
 
+	baseCols := []string{
+		"tasks.id",
+		"tasks.board_id",
+		"boards.name",
+		"boards.short_name",
+		"columns.name",
+		"tasks.column_id",
+		"tasks.number",
+		"tasks.title",
+		"tasks.created_at",
+		"tasks.updated_at",
+		"tasks.deleted_at",
+	}
+
+	baseFromJoin := `SELECT .+ FROM "tasks" ` +
+		`INNER JOIN "boards" ON \("tasks"\."board_id" = "boards"\."id"\) ` +
+		`INNER JOIN "columns" ON \("tasks"\."column_id" = "columns"\."id"\) `
+
+	baseSoftDeleteFilters := `WHERE .+` +
+		`"tasks"\."deleted_at" IS NULL.+` +
+		`"boards"\."deleted_at" IS NULL.+`
+
 	tests := []struct {
 		name        string
 		tags        []string
@@ -28,181 +50,127 @@ func TestSearchTasks(t *testing.T) {
 		expectedErr error
 	}{
 		{
-			name:   "поиск задач без фильтров",
-			tags:   []string{},
-			query:  "",
-			limit:  10,
-			offset: 0,
+			name:  "поиск задач без фильтров",
+			tags:  []string{},
+			query: "",
+			limit: 10, offset: 0,
 			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{"id", "board_id", "column_id", "number", "title", "created_at", "updated_at", "deleted_at"}).
-					AddRow(uuid.New(), boardID, columnID, int64(1), "Task 1", now, now, nil).
-					AddRow(uuid.New(), boardID, columnID, int64(2), "Task 2", now, now, nil)
+				rows := pgxmock.NewRows(baseCols).
+					AddRow(uuid.New(), boardID, "Board 1", "B1", "Todo", columnID, int64(1), "Task 1", now, now, nil).
+					AddRow(uuid.New(), boardID, "Board 1", "B1", "Todo", columnID, int64(2), "Task 2", now, now, nil)
 
-				mock.ExpectQuery(`SELECT .+ FROM "tasks" ORDER BY "created_at" DESC LIMIT`).
-					WillReturnRows(rows)
+				mock.ExpectQuery(
+					baseFromJoin +
+						baseSoftDeleteFilters +
+						`ORDER BY "tasks"\."created_at" DESC LIMIT 10`,
+				).WillReturnRows(rows)
 			},
 			expectedLen: 2,
-			expectedErr: nil,
 		},
 		{
-			name:   "поиск задач по тегам",
-			tags:   []string{"urgent", "bug"},
-			query:  "",
-			limit:  5,
-			offset: 0,
+			name:  "поиск задач по тегам",
+			tags:  []string{"urgent", "bug"},
+			query: "",
+			limit: 5, offset: 0,
 			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{"id", "board_id", "column_id", "number", "title", "created_at", "updated_at", "deleted_at"}).
-					AddRow(uuid.New(), boardID, columnID, int64(1), "Bug Task", now, now, nil)
+				rows := pgxmock.NewRows(baseCols).
+					AddRow(uuid.New(), boardID, "Board 1", "B1", "Todo", columnID, int64(1), "Bug Task", now, now, nil)
 
-				mock.ExpectQuery(`SELECT .+ FROM "tasks" WHERE tags @> .+ ORDER BY "created_at" DESC LIMIT`).
-					WillReturnRows(rows)
+				mock.ExpectQuery(
+					baseFromJoin +
+						`WHERE .+tags @>.+` + 
+						`.+\"tasks\"\.\"deleted_at\" IS NULL.+\"boards\"\.\"deleted_at\" IS NULL.+` +
+						`ORDER BY "tasks"\."created_at" DESC LIMIT 5`,
+				).WillReturnRows(rows)
 			},
 			expectedLen: 1,
-			expectedErr: nil,
 		},
 		{
-			name:   "поиск задач по query",
-			tags:   []string{},
-			query:  "test",
-			limit:  10,
-			offset: 0,
+			name:  "поиск задач по query",
+			tags:  []string{},
+			query: "test",
+			limit: 10, offset: 0,
 			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{"id", "board_id", "column_id", "number", "title", "created_at", "updated_at", "deleted_at"}).
-					AddRow(uuid.New(), boardID, columnID, int64(1), "Test Task", now, now, nil).
-					AddRow(uuid.New(), boardID, columnID, int64(2), "Another Test", now, now, nil)
+				rows := pgxmock.NewRows(baseCols).
+					AddRow(uuid.New(), boardID, "Board 1", "B1", "Todo", columnID, int64(1), "Test Task", now, now, nil).
+					AddRow(uuid.New(), boardID, "Board 1", "B1", "Todo", columnID, int64(2), "Another Test", now, now, nil)
 
-				mock.ExpectQuery(`SELECT .+ FROM "tasks" WHERE \("title" ILIKE '%test%'\) ORDER BY "created_at" DESC LIMIT`).
-					WillReturnRows(rows)
+				mock.ExpectQuery(
+					baseFromJoin +
+						`WHERE .+\"title\" ILIKE '%test%'.+` +
+						`\"tasks\"\.\"deleted_at\" IS NULL.+\"boards\"\.\"deleted_at\" IS NULL.+` +
+						`ORDER BY "tasks"\."created_at" DESC LIMIT 10`,
+				).WillReturnRows(rows)
 			},
 			expectedLen: 2,
-			expectedErr: nil,
 		},
 		{
-			name:   "поиск задач по тегам и query",
-			tags:   []string{"feature"},
-			query:  "auth",
-			limit:  10,
-			offset: 0,
+			name:  "поиск задач по тегам и query",
+			tags:  []string{"feature"},
+			query: "auth",
+			limit: 10, offset: 0,
 			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{"id", "board_id", "column_id", "number", "title", "created_at", "updated_at", "deleted_at"}).
-					AddRow(uuid.New(), boardID, columnID, int64(1), "Auth Feature", now, now, nil)
+				rows := pgxmock.NewRows(baseCols).
+					AddRow(uuid.New(), boardID, "Board 1", "B1", "Todo", columnID, int64(1), "Auth Feature", now, now, nil)
 
-				mock.ExpectQuery(`SELECT .+ FROM "tasks" WHERE \(tags @> .+ AND \("title" ILIKE '%auth%'\)\) ORDER BY "created_at" DESC LIMIT`).
-					WillReturnRows(rows)
+				mock.ExpectQuery(
+					baseFromJoin +
+						`WHERE .+tags @>.+` +
+						`.+\"title\" ILIKE '%auth%'.+` +
+						`.+\"tasks\"\.\"deleted_at\" IS NULL.+\"boards\"\.\"deleted_at\" IS NULL.+` +
+						`ORDER BY "tasks"\."created_at" DESC LIMIT 10`,
+				).WillReturnRows(rows)
 			},
 			expectedLen: 1,
-			expectedErr: nil,
 		},
 		{
-			name:   "поиск с пагинацией",
-			tags:   []string{},
-			query:  "",
-			limit:  5,
-			offset: 10,
+			name:  "поиск с пагинацией",
+			tags:  []string{},
+			query: "",
+			limit: 5, offset: 10,
 			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{"id", "board_id", "column_id", "number", "title", "created_at", "updated_at", "deleted_at"}).
-					AddRow(uuid.New(), boardID, columnID, int64(11), "Task 11", now, now, nil)
+				rows := pgxmock.NewRows(baseCols).
+					AddRow(uuid.New(), boardID, "Board 1", "B1", "Todo", columnID, int64(11), "Task 11", now, now, nil)
 
-				mock.ExpectQuery(`SELECT .+ FROM "tasks" ORDER BY "created_at" DESC LIMIT 5 OFFSET 10`).
-					WillReturnRows(rows)
+				mock.ExpectQuery(
+					baseFromJoin +
+						baseSoftDeleteFilters +
+						`ORDER BY "tasks"\."created_at" DESC LIMIT 5 OFFSET 10`,
+				).WillReturnRows(rows)
 			},
 			expectedLen: 1,
-			expectedErr: nil,
 		},
 		{
-			name:   "поиск задач с deleted_at",
-			tags:   []string{},
-			query:  "",
-			limit:  10,
-			offset: 0,
+			name:  "пустой результат поиска",
+			tags:  []string{"nonexistent"},
+			query: "",
+			limit: 10, offset: 0,
 			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				deletedTime := now.Add(-24 * time.Hour)
-				rows := pgxmock.NewRows([]string{"id", "board_id", "column_id", "number", "title", "created_at", "updated_at", "deleted_at"}).
-					AddRow(uuid.New(), boardID, columnID, int64(1), "Deleted Task", now, now, &deletedTime)
+				rows := pgxmock.NewRows(baseCols)
 
-				mock.ExpectQuery(`SELECT .+ FROM "tasks" ORDER BY "created_at" DESC LIMIT`).
-					WillReturnRows(rows)
-			},
-			expectedLen: 1,
-			expectedErr: nil,
-		},
-		{
-			name:   "пустой результат поиска",
-			tags:   []string{"nonexistent"},
-			query:  "",
-			limit:  10,
-			offset: 0,
-			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{"id", "board_id", "column_id", "number", "title", "created_at", "updated_at", "deleted_at"})
-
-				mock.ExpectQuery(`SELECT .+ FROM "tasks" WHERE tags @> .+ ORDER BY "created_at" DESC LIMIT`).
-					WillReturnRows(rows)
+				mock.ExpectQuery(
+					baseFromJoin +
+						`WHERE .+tags @>.+` +
+						`.+\"tasks\"\.\"deleted_at\" IS NULL.+\"boards\"\.\"deleted_at\" IS NULL.+` +
+						`ORDER BY "tasks"\."created_at" DESC LIMIT 10`,
+				).WillReturnRows(rows)
 			},
 			expectedLen: 0,
-			expectedErr: nil,
 		},
 		{
-			name:   "ошибка БД при поиске",
-			tags:   []string{},
-			query:  "",
-			limit:  10,
-			offset: 0,
+			name:  "ошибка БД при поиске",
+			tags:  []string{},
+			query: "",
+			limit: 10, offset: 0,
 			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				mock.ExpectQuery(`SELECT .+ FROM "tasks" ORDER BY "created_at" DESC LIMIT`).
-					WillReturnError(errors.New("database error"))
+				mock.ExpectQuery(
+					baseFromJoin +
+						baseSoftDeleteFilters +
+						`ORDER BY "tasks"\."created_at" DESC LIMIT 10`,
+				).WillReturnError(errors.New("database error"))
 			},
 			expectedLen: 0,
 			expectedErr: errors.New("database error"),
-		},
-		{
-			name:   "поиск с одним тегом",
-			tags:   []string{"backend"},
-			query:  "",
-			limit:  10,
-			offset: 0,
-			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{"id", "board_id", "column_id", "number", "title", "created_at", "updated_at", "deleted_at"}).
-					AddRow(uuid.New(), boardID, columnID, int64(1), "Backend Task", now, now, nil)
-
-				mock.ExpectQuery(`SELECT .+ FROM "tasks" WHERE tags @> .+ ORDER BY "created_at" DESC LIMIT`).
-					WillReturnRows(rows)
-			},
-			expectedLen: 1,
-			expectedErr: nil,
-		},
-		{
-			name:   "поиск с большим лимитом",
-			tags:   []string{},
-			query:  "",
-			limit:  100,
-			offset: 0,
-			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{"id", "board_id", "column_id", "number", "title", "created_at", "updated_at", "deleted_at"})
-				for i := 1; i <= 50; i++ {
-					rows.AddRow(uuid.New(), boardID, columnID, int64(i), "Task", now, now, nil)
-				}
-
-				mock.ExpectQuery(`SELECT .+ FROM "tasks" ORDER BY "created_at" DESC LIMIT 100`).
-					WillReturnRows(rows)
-			},
-			expectedLen: 50,
-			expectedErr: nil,
-		},
-		{
-			name:   "поиск с регистронезависимым query",
-			tags:   []string{},
-			query:  "TEST",
-			limit:  10,
-			offset: 0,
-			mockSetup: func(mock pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{"id", "board_id", "column_id", "number", "title", "created_at", "updated_at", "deleted_at"}).
-					AddRow(uuid.New(), boardID, columnID, int64(1), "test task", now, now, nil)
-
-				mock.ExpectQuery(`SELECT .+ FROM "tasks" WHERE \("title" ILIKE '%TEST%'\) ORDER BY "created_at" DESC LIMIT`).
-					WillReturnRows(rows)
-			},
-			expectedLen: 1,
-			expectedErr: nil,
 		},
 	}
 

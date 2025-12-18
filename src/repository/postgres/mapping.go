@@ -43,11 +43,14 @@ func (col *ColumnRecord) toDomain() (*domain.Column, error) {
 	}, nil
 }
 
-func (tsr *TaskShortRecord) toDomain() (*domain.Task, error){
+func (tsr *TaskSearchRecord) toDomain() (*domain.Task, error){
 	return &domain.Task{
 		ID:          tsr.ID,
 		ColumnID:    tsr.ColumnID,
+		ColumnName:  &tsr.ColumnName,
 		BoardID:     tsr.BoardID,
+		BoardName: &tsr.BoardName,
+		BoardShortName: &tsr.BoardShortName,
 		Number:      tsr.Number,
 		Title:       tsr.Title,
 		CreatedAt:   tsr.CreatedAt,
@@ -56,7 +59,7 @@ func (tsr *TaskShortRecord) toDomain() (*domain.Task, error){
 	}, nil
 }
 
-func (tsrs TaskShortRecords) toDomain() ([]domain.Task, error) {
+func (tsrs TaskSearchRecords) toDomain() ([]domain.Task, error) {
 	op := "postgres.TaskShortRecords.ToDomain"
 
 	dmn := make([]domain.Task, 0)
