@@ -14,6 +14,11 @@ BUILD_FLAGS = -ldflags="-s -w -X main.version=$(VERSION)"
 # ========================
 # Основные команды
 # ========================
+
+# Полный запуск проекта
+.PHONY: all
+all: lint test swag docker-run
+
 .PHONY: help
 help:
 	@echo "Доступные команды:"
@@ -118,11 +123,17 @@ pre-commit: deps lint test
 #	migrate -path ./migrations -database "postgres://postgres:postgres@localhost:5431/teamboard?sslmode=disable" force {num}
 MIGR_NAME := $(word 2,$(MAKECMDGOALS))
 .PHONY: migrate-create
-migrate-create:
+migrate-create: install-migrate
 	@echo "Создание миграций..."
 	@test -n "$(MIGR_NAME)" || { echo "Usage: make migrate-create <name>"; exit 1; }
 	@mkdir -p migrations
 	migrate create -ext sql -dir migrations $(MIGR_NAME)
+
+# Скачивание migrate
+.PHONY: install-migrate
+install-migrate:
+	@echo "Скачивание migrate..."
+	go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 # Запуск в контейнера (c беком)
 .PHONY: docker-run
