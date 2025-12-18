@@ -37,6 +37,9 @@ help:
 	@echo "  make install-swag           			 — скачивание swaggo"
 	@echo "  make docker-run   				 — запуск в контейнера (c беком)"
 	@echo "  make docker-dev-run  				 — запуск в контейнера локальной разработки (без бека)"
+	@echo "  make docker-stop   				 — остановка контейнера"
+	@echo "  make docker-dev-stop  			 — остановка контейнера локальной разработки"
+	@echo "  make install-migrate   			 — установка migrate"
 	@echo "  make migrate-create {имя файла}     		 — создание новой миграции (up && down) в папке migrate"
 	@echo "  make generate-docs    			 — инициализация OpenApi документации"
 
@@ -147,6 +150,18 @@ docker-run:
 docker-dev-run:
 	@echo "Запуск в контейнера локальной разработки (без бека)..."
 	docker-compose -f docker-compose.dev.yaml up --build -d
+
+# Остановка контейнеров (основной docker-compose.yml)
+.PHONY: docker-stop
+docker-stop:
+	@echo "Остановка контейнеров..."
+	docker-compose down
+
+# Остановка контейнеров (docker-compose.dev.yaml)
+.PHONY: docker-dev-stop
+docker-dev-stop:
+	@echo "Остановка dev-контейнеров..."
+	docker-compose -f docker-compose.dev.yaml down
 
 # Генерация документации Swagger
 .PHONY: swag
