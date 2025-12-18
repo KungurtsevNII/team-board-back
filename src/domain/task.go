@@ -12,7 +12,10 @@ var ErrAlreadyInColumn = errors.New("task already in target column")
 type Task struct {
 	ID          uuid.UUID
 	ColumnID    uuid.UUID
+	ColumnName  *string
 	BoardID     uuid.UUID
+	BoardName   *string
+	BoardShortName *string
 	Number      int64
 	Title       string
 	Description *string
@@ -49,18 +52,6 @@ func NewTask(
 	}, nil
 }
 
-	// targetDmn := &domain.Task{
-	// 	ID:          cmd.TaskID,
-	// 	ColumnID:    cmd.ColumnID,
-	// 	BoardID:     cmd.BoardID,
-	// 	Number:      cmd.Number,
-	// 	Title:       cmd.Title,
-	// 	Description: cmd.Description,
-	// 	Tags:        cmd.Tags,
-	// 	Checklists:  cmd.Checklists,
-	// 	CreatedAt:   foundDmn.CreatedAt,
-	// 	UpdatedAt:   foundDmn.UpdatedAt,
-	// }
 func (t *Task)Update(
 	columnID uuid.UUID,
 	boardID uuid.UUID,

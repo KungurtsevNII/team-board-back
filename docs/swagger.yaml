@@ -169,6 +169,42 @@ definitions:
       updated_at:
         type: string
     type: object
+  handlers.MoveTaskRequest:
+    properties:
+      column_id:
+        type: string
+    required:
+    - column_id
+    type: object
+  handlers.MoveTaskResponse:
+    properties:
+      board_id:
+        type: string
+      checklists:
+        items:
+          $ref: '#/definitions/handlers.ChecklistDto'
+        type: array
+      column_id:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      number:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
   handlers.PutTaskRequest:
     properties:
       board_id:
@@ -221,7 +257,13 @@ definitions:
     properties:
       board_id:
         type: string
+      board_name:
+        type: string
+      board_short_name:
+        type: string
       column_id:
+        type: string
+      column_name:
         type: string
       id:
         type: string
@@ -654,6 +696,52 @@ paths:
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
       summary: Изменение задачи
+      tags:
+      - Tasks
+  /v1/tasks/{task_id}/move:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID задачи
+        in: path
+        name: task_id
+        required: true
+        type: string
+      - description: request на перемещение задачи
+        in: body
+        name: moveTaskRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.MoveTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Полная информация об обновленной задаче
+          schema:
+            $ref: '#/definitions/handlers.MoveTaskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "408":
+          description: Request Timeout
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Перемещение задачи в другую колонку
       tags:
       - Tasks
   /v1/tasks/search:

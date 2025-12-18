@@ -27,11 +27,14 @@ type (
 	}
 
 	SearchTaskResponse struct {
-		ID       uuid.UUID `json:"id"`
-		ColumnID uuid.UUID `json:"column_id"`
-		BoardID  uuid.UUID `json:"board_id"`
-		Number   int64     `json:"number"`
-		Title    string    `json:"title"`
+		ID             uuid.UUID `json:"id"`
+		ColumnID       uuid.UUID `json:"column_id"`
+		ColumnName     string    `json:"column_name"`
+		BoardName      string    `json:"board_name"`
+		BoardShortName *string   `json:"board_short_name"`
+		BoardID        uuid.UUID `json:"board_id"`
+		Number         int64     `json:"number"`
+		Title          string    `json:"title"`
 	}
 )
 
@@ -89,11 +92,14 @@ func taskDomainsToSearchTaskResponses(tasks []domain.Task) []SearchTaskResponse 
 	resps := make([]SearchTaskResponse, 0, len(tasks))
 	for _, el := range tasks {
 		resps = append(resps, SearchTaskResponse{
-			ID:       el.ID,
-			ColumnID: el.ColumnID,
-			BoardID:  el.BoardID,
-			Number:   el.Number,
-			Title:    el.Title,
+			ID:             el.ID,
+			ColumnID:       el.ColumnID,
+			ColumnName:     *el.ColumnName,
+			BoardName:      *el.BoardName,
+			BoardShortName: el.BoardShortName,
+			BoardID:        el.BoardID,
+			Number:         el.Number,
+			Title:          el.Title,
 		})
 	}
 	return resps

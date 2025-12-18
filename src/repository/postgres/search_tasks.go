@@ -17,7 +17,7 @@ func (r Repository) SearchTasks(
 ) ([]domain.Task, error) {
     const op = "postgres.SearchTasks"
 
-    tasksRec := make([]TaskShortRecord, 0)
+    tasksRec := make([]TaskSearchRecord, 0)
     
     ds := goqu.From("tasks")
     
@@ -29,9 +29,12 @@ func (r Repository) SearchTasks(
         ds = ds.Where(goqu.Ex{"title": goqu.Op{"ilike": "%" + query + "%"}})
     }
     
-    ds = ds.Select(&TaskShortRecord{}).
-        Where(goqu.C("deleted_at").IsNull()).
-		Order(goqu.C("created_at").Desc()).
+    ds = ds.Select(&TaskSearchRecord{}).
+        Join(goqu.T("boards"), goqu.On(goqu.T("tasks").Col("board_id").Eq(goqu.T("boards").Col("id")))).
+        Join(goqu.T("columns"), goqu.On(goqu.T("tasks").Col("column_id").Eq(goqu.T("columns").Col("id")))).
+        Where(goqu.T("tasks").Col("deleted_at").IsNull(), 
+            goqu.T("boards").Col("deleted_at").IsNull()).
+		Order(goqu.T("tasks").Col("created_at").Desc()).
         Limit(limit).
         Offset(offset)
     
@@ -45,7 +48,7 @@ func (r Repository) SearchTasks(
         return nil, errors.Wrap(err, op)
     }
     
-    dmn, err := TaskShortRecords(tasksRec).toDomain()
+    dmn, err := TaskSearchRecords(tasksRec).toDomain()
     if err != nil {
         return nil, errors.Wrap(err, op)
     }
