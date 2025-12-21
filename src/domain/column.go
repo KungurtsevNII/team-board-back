@@ -1,10 +1,13 @@
 package domain
 
 import (
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+var ErrEmptyColumnName = errors.New("column name can't be empty")
 
 type Column struct {
 	ID        uuid.UUID
@@ -17,6 +20,9 @@ type Column struct {
 }
 
 func NewColumn(boardID uuid.UUID, name string, orderNum int64) (*Column, error) {
+	if name == "" {
+		return nil, ErrEmptyColumnName
+	}
 	id := uuid.New()
 
 	return &Column{

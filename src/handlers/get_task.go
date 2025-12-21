@@ -47,7 +47,7 @@ func (h *HttpHandler) GetTask(c *gin.Context) {
 
 	taskID := c.Param("task_id")
 
-	cmd, err := gettask.NewGetTaskQuery(taskID)
+	cmd, err := gettask.NewQuery(taskID)
 	if err != nil {
 		log.Warn("failed to create command", "error", err)
 		switch {

@@ -16,7 +16,7 @@ func NewCommand(boardID, name string) (Command, error) {
 
 	bID, err := uuid.Parse(boardID)
 	if err != nil {
-		return Command{}, errors.Wrap(err, ErrInvalidUUID.Error())
+		return Command{}, errors.Wrap(ErrInvalidUUID, err.Error())
 	}
 
 	ccc := Command{
@@ -26,7 +26,7 @@ func NewCommand(boardID, name string) (Command, error) {
 
 	err = validate.Struct(ccc)
 	if err != nil {
-		return Command{}, errors.Wrap(err, ErrValidationFailed.Error())
+		return Command{}, errors.Wrap(ErrValidationFailed, err.Error())
 	}
 
 	return ccc, nil
