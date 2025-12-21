@@ -15,11 +15,15 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/middlewares"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
 
 	"github.com/KungurtsevNII/team-board-back/docs"
+	pgxpool_prom "github.com/cmackenzie1/pgxpool-prometheus"
+	"github.com/prometheus/client_golang/prometheus"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	ginprometheus "github.com/zsais/go-gin-prometheus"
 )
 
 const (
@@ -43,6 +47,7 @@ type HttpServer struct {
 func initAndStartHTTPServer(
 	cfg *config.Config,
 	handlers *handlers.HttpHandler,
+	metrics_pool *pgxpool.Pool,
 ) (*HttpServer, <-chan error) {
 	log := slog.Default()
 	const op = "initAndStartHttpServer"
@@ -98,6 +103,11 @@ func initAndStartHTTPServer(
 		v1Group.GET("/boards/:id", handlers.GetBoard)
 		v1Group.PUT("/tasks/:task_id/move", handlers.MoveTask)
 	}
+	p := ginprometheus.NewPrometheus("gin")
+	p.MetricsPath = fmt.Sprintf("%v%s", mainPath, "/metrics")
+	collector := pgxpool_prom.NewPgxPoolStatsCollector(metrics_pool, "teamboard")
+	prometheus.MustRegister(collector)
+	p.Use(router)
 
 	log.Info("http server is running", slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
 		slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),

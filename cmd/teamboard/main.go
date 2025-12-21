@@ -18,10 +18,10 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/usecase/getboard"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/getboards"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/gettask"
-	"github.com/KungurtsevNII/team-board-back/src/usecase/searchtasks"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/movetask"
-	"github.com/sytallax/prettylog"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/puttask"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/searchtasks"
+	"github.com/sytallax/prettylog"
 )
 
 const (
@@ -37,9 +37,7 @@ func main() {
 	log.Info("starting application", slog.String("env", cfg.Env))
 	log.Info("config", slog.Any("cfg", cfg))
 
-	//_ - Пул для метрик. Можно что-то придумать с функцией подключения
-	//Можно вставить пулл в структуру, и подключать метрики в отдельной функции в postgres pkg
-	rep, _, err := postgres.New(cfg.PostgresConfig.Host)
+	rep, metrics, err := postgres.New(cfg.PostgresConfig.Host)
 	if err != nil {
 		panic(err)
 	}
@@ -62,7 +60,7 @@ func main() {
 
 	log.Info("repository connected", slog.String("path", cfg.PostgresConfig.Host))
 
-	httpsrv, httpErrCh := initAndStartHTTPServer(cfg, handlers)
+	httpsrv, httpErrCh := initAndStartHTTPServer(cfg, handlers, metrics)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
