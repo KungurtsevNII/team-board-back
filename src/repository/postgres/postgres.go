@@ -27,23 +27,23 @@ type Repository struct {
 	pool PgxPoolIface
 }
 
-func New(storagePath string) (*Repository, error) {
+func New(storagePath string) (*Repository, *pgxpool.Pool, error) {
 	const op = "storage.postgresql.New"
 
 	log := slog.Default()
 	log.With("storagePath", storagePath, "op", op).Info("connecting to postgres")
 	pool, err := pgxpool.New(context.Background(), storagePath)
 	if err != nil {
-		return nil, errors.Wrap(err, op)
+		return nil, nil, errors.Wrap(err, op)
 	}
 
 	if err = pool.Ping(context.Background()); err != nil {
-		return nil, errors.Wrap(err, op)
+		return nil, nil, errors.Wrap(err, op)
 	}
 
 	return &Repository{
 		pool: pool,
-	}, nil
+	}, pool, nil
 }
 
 func (s *Repository) Close() {

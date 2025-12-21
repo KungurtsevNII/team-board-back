@@ -37,7 +37,9 @@ func main() {
 	log.Info("starting application", slog.String("env", cfg.Env))
 	log.Info("config", slog.Any("cfg", cfg))
 
-	rep, err := postgres.New(cfg.PostgresConfig.Host)
+	//_ - Пул для метрик. Можно что-то придумать с функцией подключения
+	//Можно вставить пулл в структуру, и подключать метрики в отдельной функции в postgres pkg
+	rep, _, err := postgres.New(cfg.PostgresConfig.Host)
 	if err != nil {
 		panic(err)
 	}
