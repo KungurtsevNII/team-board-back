@@ -51,6 +51,7 @@ func initAndStartHTTPServer(
 
 	router := gin.Default()
 	router.Use(middlewares.RequestLogger()) //Логирование запросов до основной ручки
+	router.Use(middlewares.Timeout(cfg.HttpConfig.Timeout)) //Слушаем таймаут
 
 	//TODO: Поменять AllowOrigins: []string{"*"}, на хост фронта
 	router.Use(cors.New(cors.Config{
