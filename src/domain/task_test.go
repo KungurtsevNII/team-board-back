@@ -9,108 +9,173 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func strPtr(s string) *string {
-	return &s
-}
-
 func TestNewTask(t *testing.T) {
-	t.Run("Success: creates a new task with valid data", func(t *testing.T) {
-		columnID := uuid.New()
-		boardID := uuid.New()
-		number := int64(101)
-		title := "Implement API"
-		description := strPtr("Use Golang")
-		tags := []string{"backend", "api"}
-		checklists := []Checklist{}
+	columnID := uuid.New()
+	boardID := uuid.New()
 
-		task, err := NewTask(columnID, boardID, number, title, description, tags, checklists)
+	testCases := []struct {
+		name        string
+		columnID    uuid.UUID
+		boardID     uuid.UUID
+		number      int64
+		title       string
+		description *string
+		tags        []string
+		checklists  []Checklist
+	}{
+		{
+			name:        "Success: creates a new task with valid data",
+			columnID:    columnID,
+			boardID:     boardID,
+			number:      101,
+			title:       "Implement API",
+			description: strPtr("Use Golang"),
+			tags:        []string{"backend", "api"},
+			checklists:  []Checklist{},
+		},
+	}
 
-		require.NoError(t, err)
-		require.NotNil(t, task)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			task, err := NewTask(tc.columnID, tc.boardID, tc.number, tc.title, tc.description, tc.tags, tc.checklists)
 
-		assert.NotEqual(t, uuid.Nil, task.ID)
-		assert.Equal(t, columnID, task.ColumnID)
-		assert.Equal(t, boardID, task.BoardID)
-		assert.Equal(t, number, task.Number)
-		assert.Equal(t, title, task.Title)
-		assert.Equal(t, description, task.Description)
-		assert.Equal(t, tags, task.Tags)
-		assert.Equal(t, checklists, task.Checklists)
-		assert.WithinDuration(t, time.Now().UTC(), task.CreatedAt, time.Second)
-		assert.WithinDuration(t, time.Now().UTC(), task.UpdatedAt, time.Second)
-		assert.Nil(t, task.DeletedAt)
-	})
+			require.NoError(t, err)
+			require.NotNil(t, task)
+
+			assert.NotEqual(t, uuid.Nil, task.ID)
+			assert.Equal(t, tc.columnID, task.ColumnID)
+			assert.Equal(t, tc.boardID, task.BoardID)
+			assert.Equal(t, tc.number, task.Number)
+			assert.Equal(t, tc.title, task.Title)
+			assert.Equal(t, tc.description, task.Description)
+			assert.Equal(t, tc.tags, task.Tags)
+			assert.Equal(t, tc.checklists, task.Checklists)
+			assert.WithinDuration(t, time.Now().UTC(), task.CreatedAt, time.Second)
+			assert.WithinDuration(t, time.Now().UTC(), task.UpdatedAt, time.Second)
+			assert.Nil(t, task.DeletedAt)
+		})
+	}
 }
 
 func TestTask_Update(t *testing.T) {
-	t.Run("updates task fields and timestamp", func(t *testing.T) {
-		task, err := NewTask(uuid.New(), uuid.New(), 1, "Old Title", nil, nil, nil)
-		require.NoError(t, err)
-		originalUpdatedAt := task.UpdatedAt
-		time.Sleep(10 * time.Millisecond)
+	task, err := NewTask(uuid.New(), uuid.New(), 1, "Old Title", nil, nil, nil)
+	require.NoError(t, err)
+	originalUpdatedAt := task.UpdatedAt
 
-		newColumnID := uuid.New()
-		newBoardID := uuid.New()
-		newNumber := int64(2)
-		newTitle := "New Title"
-		newDescription := strPtr("New Desc")
-		newTags := []string{"new"}
-		newChecklists := []Checklist{{Title: "new list"}}
+	testCases := []struct {
+		name          string
+		taskToUpdate  *Task
+		newColumnID   uuid.UUID
+		newBoardID    uuid.UUID
+		newNumber     int64
+		newTitle      string
+		newDescription *string
+		newTags       []string
+		newChecklists []Checklist
+	}{
+		{
+			name:          "updates task fields and timestamp",
+			taskToUpdate:  task,
+			newColumnID:   uuid.New(),
+			newBoardID:    uuid.New(),
+			newNumber:     2,
+			newTitle:      "New Title",
+			newDescription: strPtr("New Desc"),
+			newTags:       []string{"new"},
+			newChecklists: []Checklist{{Title: "new list"}},
+		},
+	}
 
-		task.Update(newColumnID, newBoardID, newNumber, newTitle, newDescription, newTags, newChecklists)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.taskToUpdate.Update(tc.newColumnID, tc.newBoardID, tc.newNumber, tc.newTitle, tc.newDescription, tc.newTags, tc.newChecklists)
 
-		assert.Equal(t, newColumnID, task.ColumnID)
-		assert.Equal(t, newBoardID, task.BoardID)
-		assert.Equal(t, newNumber, task.Number)
-		assert.Equal(t, newTitle, task.Title)
-		assert.Equal(t, newDescription, task.Description)
-		assert.Equal(t, newTags, task.Tags)
-		assert.Equal(t, newChecklists, task.Checklists)
-		assert.True(t, task.UpdatedAt.After(originalUpdatedAt))
-	})
+			assert.Equal(t, tc.newColumnID, tc.taskToUpdate.ColumnID)
+			assert.Equal(t, tc.newBoardID, tc.taskToUpdate.BoardID)
+			assert.Equal(t, tc.newNumber, tc.taskToUpdate.Number)
+			assert.Equal(t, tc.newTitle, tc.taskToUpdate.Title)
+			assert.Equal(t, tc.newDescription, tc.taskToUpdate.Description)
+			assert.Equal(t, tc.newTags, tc.taskToUpdate.Tags)
+			assert.Equal(t, tc.newChecklists, tc.taskToUpdate.Checklists)
+			assert.True(t, tc.taskToUpdate.UpdatedAt.After(originalUpdatedAt))
+		})
+	}
 }
 
 func TestTask_Delete(t *testing.T) {
-	t.Run("marks a task as deleted", func(t *testing.T) {
-		task, err := NewTask(uuid.New(), uuid.New(), 1, "A task", nil, nil, nil)
-		require.NoError(t, err)
-		require.Nil(t, task.DeletedAt)
+	task, err := NewTask(uuid.New(), uuid.New(), 1, "A task", nil, nil, nil)
+	require.NoError(t, err)
 
-		task.Delete()
+	testCases := []struct {
+		name         string
+		taskToDelete *Task
+	}{
+		{
+			name:         "marks a task as deleted",
+			taskToDelete: task,
+		},
+	}
 
-		require.NotNil(t, task.DeletedAt)
-		assert.WithinDuration(t, time.Now().UTC(), *task.DeletedAt, time.Second)
-	})
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Nil(t, tc.taskToDelete.DeletedAt)
+
+			tc.taskToDelete.Delete()
+
+			require.NotNil(t, tc.taskToDelete.DeletedAt)
+			assert.WithinDuration(t, time.Now().UTC(), *tc.taskToDelete.DeletedAt, time.Second)
+		})
+	}
 }
 
 func TestTask_MoveToColumn(t *testing.T) {
-	t.Run("Success: moves task to a different column", func(t *testing.T) {
-		originalColumnID := uuid.New()
-		task, err := NewTask(originalColumnID, uuid.New(), 1, "Task to move", nil, nil, nil)
-		require.NoError(t, err)
-		originalUpdatedAt := task.UpdatedAt
-		time.Sleep(10 * time.Millisecond)
+	originalColumnID := uuid.New()
+	taskToMove, err := NewTask(originalColumnID, uuid.New(), 1, "Task to move", nil, nil, nil)
+	require.NoError(t, err)
 
-		newColumnID := uuid.New()
+	taskNotToMove, err := NewTask(originalColumnID, uuid.New(), 1, "Task not to move", nil, nil, nil)
+	require.NoError(t, err)
 
-		err = task.MoveToColumn(newColumnID)
+	newColumnID := uuid.New()
 
-		require.NoError(t, err)
-		assert.Equal(t, newColumnID, task.ColumnID)
-		assert.True(t, task.UpdatedAt.After(originalUpdatedAt))
-	})
+	testCases := []struct {
+		name              string
+		task              *Task
+		targetColumnID    uuid.UUID
+		expectError       bool
+		expectedUpdatedAt time.Time
+	}{
+		{
+			name:           "Success: moves task to a different column",
+			task:           taskToMove,
+			targetColumnID: newColumnID,
+			expectError:    false,
+		},
+		{
+			name:              "Failure: returns error when moving to the same column",
+			task:              taskNotToMove,
+			targetColumnID:    originalColumnID,
+			expectError:       true,
+			expectedUpdatedAt: taskNotToMove.UpdatedAt, 
+		},
+	}
 
-	t.Run("Failure: returns error when moving to the same column", func(t *testing.T) {
-		originalColumnID := uuid.New()
-		task, err := NewTask(originalColumnID, uuid.New(), 1, "Task not to move", nil, nil, nil)
-		require.NoError(t, err)
-		originalUpdatedAt := task.UpdatedAt
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			originalUpdatedAt := tc.task.UpdatedAt
 
-		err = task.MoveToColumn(originalColumnID) 
+			err := tc.task.MoveToColumn(tc.targetColumnID)
 
-		require.Error(t, err)
-		assert.ErrorIs(t, err, ErrAlreadyInColumn)
-		assert.Equal(t, originalColumnID, task.ColumnID)
-		assert.Equal(t, originalUpdatedAt, task.UpdatedAt, "UpdatedAt should not change")
-	})
+			if tc.expectError {
+				require.Error(t, err)
+				assert.ErrorIs(t, err, ErrAlreadyInColumn)
+				assert.Equal(t, tc.targetColumnID, tc.task.ColumnID, "ColumnID should not change on error")
+				assert.Equal(t, tc.expectedUpdatedAt, tc.task.UpdatedAt, "UpdatedAt should not change on error")
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tc.targetColumnID, tc.task.ColumnID)
+				assert.True(t, tc.task.UpdatedAt.After(originalUpdatedAt))
+			}
+		})
+	}
 }
