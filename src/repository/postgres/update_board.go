@@ -18,7 +18,7 @@ func (r Repository) UpdateBoard(ctx context.Context, board *domain.Board) error 
     if err != nil {
         return errors.Wrap(err, op)
     }
-    defer tx.Rollback(ctx)
+    defer func() { _ = tx.Rollback(ctx) }() //lint fix
 
     ds := goqu.Update("boards").Where(
         goqu.C("id").Eq(board.ID),

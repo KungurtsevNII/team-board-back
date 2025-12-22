@@ -14,6 +14,11 @@ BUILD_FLAGS = -ldflags="-s -w -X main.version=$(VERSION)"
 # ========================
 # Основные команды
 # ========================
+
+# Полный запуск проекта
+.PHONY: all
+all: lint test swag docker-run
+
 .PHONY: help
 help:
 	@echo "Доступные команды:"
@@ -32,6 +37,9 @@ help:
 	@echo "  make install-swag           			 — скачивание swaggo"
 	@echo "  make docker-run   				 — запуск в контейнера (c беком)"
 	@echo "  make docker-dev-run  				 — запуск в контейнера локальной разработки (без бека)"
+	@echo "  make docker-stop   				 — остановка контейнера"
+	@echo "  make docker-dev-stop  			 — остановка контейнера локальной разработки"
+	@echo "  make install-migrate   			 — установка migrate"
 	@echo "  make migrate-create {имя файла}     		 — создание новой миграции (up && down) в папке migrate"
 	@echo "  make generate-docs    			 — инициализация OpenApi документации"
 
@@ -118,11 +126,17 @@ pre-commit: deps lint test
 #	migrate -path ./migrations -database "postgres://postgres:postgres@localhost:5431/teamboard?sslmode=disable" force {num}
 MIGR_NAME := $(word 2,$(MAKECMDGOALS))
 .PHONY: migrate-create
-migrate-create:
+migrate-create: install-migrate
 	@echo "Создание миграций..."
 	@test -n "$(MIGR_NAME)" || { echo "Usage: make migrate-create <name>"; exit 1; }
 	@mkdir -p migrations
 	migrate create -ext sql -dir migrations $(MIGR_NAME)
+
+# Скачивание migrate
+.PHONY: install-migrate
+install-migrate:
+	@echo "Скачивание migrate..."
+	go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 # Запуск в контейнера (c беком)
 .PHONY: docker-run
@@ -136,6 +150,18 @@ docker-run:
 docker-dev-run:
 	@echo "Запуск в контейнера локальной разработки (без бека)..."
 	docker-compose -f docker-compose.dev.yaml up --build -d
+
+# Остановка контейнеров (основной docker-compose.yml)
+.PHONY: docker-stop
+docker-stop:
+	@echo "Остановка контейнеров..."
+	docker-compose down
+
+# Остановка контейнеров (docker-compose.dev.yaml)
+.PHONY: docker-dev-stop
+docker-dev-stop:
+	@echo "Остановка dev-контейнеров..."
+	docker-compose -f docker-compose.dev.yaml down
 
 # Генерация документации Swagger
 .PHONY: swag
