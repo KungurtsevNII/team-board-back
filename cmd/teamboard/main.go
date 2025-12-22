@@ -37,7 +37,7 @@ func main() {
 	log.Info("starting application", slog.String("env", cfg.Env))
 	log.Info("config", slog.Any("cfg", cfg))
 
-	rep, metrics, err := postgres.New(cfg.PostgresConfig.Host)
+	rep, err := postgres.New(cfg.PostgresConfig.Host)
 	if err != nil {
 		panic(err)
 	}
@@ -60,7 +60,7 @@ func main() {
 
 	log.Info("repository connected", slog.String("path", cfg.PostgresConfig.Host))
 
-	httpsrv, httpErrCh := initAndStartHTTPServer(cfg, handlers, metrics)
+	httpsrv, httpErrCh := initAndStartHTTPServer(cfg, handlers)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)

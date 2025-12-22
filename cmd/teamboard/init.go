@@ -15,7 +15,6 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/middlewares"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
 
 	"github.com/KungurtsevNII/team-board-back/docs"
@@ -46,7 +45,6 @@ type HttpServer struct {
 func initAndStartHTTPServer(
 	cfg *config.Config,
 	handlers *handlers.HttpHandler,
-	metrics_pool *pgxpool.Pool,
 ) (*HttpServer, <-chan error) {
 	log := slog.Default()
 	const op = "initAndStartHttpServer"
