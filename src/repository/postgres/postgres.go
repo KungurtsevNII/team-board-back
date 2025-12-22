@@ -5,10 +5,12 @@ import (
 
 	"log/slog"
 
+	pgxpool_prom "github.com/cmackenzie1/pgxpool-prometheus"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type PgxPoolIface interface {
@@ -40,6 +42,9 @@ func New(storagePath string) (*Repository, *pgxpool.Pool, error) {
 	if err = pool.Ping(context.Background()); err != nil {
 		return nil, nil, errors.Wrap(err, op)
 	}
+
+	collector := pgxpool_prom.NewPgxPoolStatsCollector(pool, "teamboard")
+	prometheus.MustRegister(collector)
 
 	return &Repository{
 		pool: pool,
