@@ -8,7 +8,7 @@ type GetTaskQuery struct {
 	TaskID uuid.UUID 
 }
 
-func NewGetTaskQuery(userID string) (GetTaskQuery, error) {
+func NewQuery(userID string) (GetTaskQuery, error) {
 	uid, err := uuid.Parse(userID)
 	if err != nil {
 		return GetTaskQuery{}, ErrInvalidTaskID

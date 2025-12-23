@@ -19,6 +19,7 @@ func NewUC(repo Repo) *UC {
 	}
 }
 
+//go generate 
 type Repo interface {
 	CheckBoard(ctx context.Context, id string) bool
 	GetLastOrderNumColumn(
@@ -33,7 +34,7 @@ type Repo interface {
 
 func (uc *UC) Handle(ctx context.Context, cmd Command) (column *domain.Column, err error) {
 	if !uc.repo.CheckBoard(ctx, cmd.BoardID.String()) {
-		return nil, errors.Wrap(err, ErrBoardIsNotExists.Error())
+		return nil, ErrBoardIsNotExists
 	}
 
 	orderNum, err := uc.repo.GetLastOrderNumColumn(ctx, cmd.BoardID)

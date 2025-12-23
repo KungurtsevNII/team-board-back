@@ -34,6 +34,7 @@ help:
 	@echo "  make docker-dev-run  				 — запуск в контейнера локальной разработки (без бека)"
 	@echo "  make migrate-create {имя файла}     		 — создание новой миграции (up && down) в папке migrate"
 	@echo "  make generate-docs    			 — инициализация OpenApi документации"
+	@echo "  make install-mockery   			 — установить mockery"
 
 # Сборка бинарника
 .PHONY: build
@@ -149,3 +150,8 @@ install-swag:
 	@echo "Скачивание swago..."
 	go install github.com/swaggo/swag/cmd/swag@latest
 
+.PHONY: install-mockery
+install-mockery:
+	@echo "Скачивание mockery..."
+	go install github.com/vektra/mockery/v2@latest
+	@echo "\x1b[33musage: mockery --name Repo --dir src/usecase/gettask --output src/usecase/gettask/mocks \x1b[0m"
