@@ -18,8 +18,10 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/KungurtsevNII/team-board-back/docs"
+
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	ginprometheus "github.com/zsais/go-gin-prometheus"
 )
 
 const (
@@ -99,6 +101,9 @@ func initAndStartHTTPServer(
 		v1Group.GET("/boards/:id", handlers.GetBoard)
 		v1Group.PUT("/tasks/:task_id/move", handlers.MoveTask)
 	}
+
+	p := ginprometheus.NewPrometheus("gin")
+	p.Use(router)
 
 	log.Info("http server is running", slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
 		slog.String("port", strconv.Itoa(cfg.HttpConfig.Port)),
