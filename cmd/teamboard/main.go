@@ -18,10 +18,10 @@ import (
 	"github.com/KungurtsevNII/team-board-back/src/usecase/getboard"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/getboards"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/gettask"
-	"github.com/KungurtsevNII/team-board-back/src/usecase/searchtasks"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/movetask"
-	"github.com/sytallax/prettylog"
 	"github.com/KungurtsevNII/team-board-back/src/usecase/puttask"
+	"github.com/KungurtsevNII/team-board-back/src/usecase/searchtasks"
+	"github.com/sytallax/prettylog"
 )
 
 const (
